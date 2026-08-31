@@ -44,3 +44,21 @@ Least-privilege Vault access policy configured
 Subsequent phases will follow the same pattern, e.g. `## [v1.0 MVP] - YYYY-MM-DD`, `## [v1.1 Voice Pipeline] - YYYY-MM-DD`, and so on through `## [Enterprise Edition] - YYYY-MM-DD`, each listing what was **Added**, **Changed**, **Fixed**, **Security**-relevant, or **Deprecated**, consistent with the completion criteria defined for that phase in `requirements.md`.
 
 Regression verification results (confirming prior phases' completion criteria still hold) will be noted under a `### Verified` heading when a phase's merge required re-validating earlier functionality — most notably expected at the `v3.1 AI-OS Core` milestone, which requires a full V1 backward-compatibility regression pass.
+
+## [Foundation - In Progress] - 2026-08-31
+### Added
+- Hello-world dummy service (FastAPI) with `/healthz` and `/readyz` endpoints
+- Dockerfile for hello-world service — verified working locally via `docker build` + `docker run`
+- Basic GitHub Actions CI workflow (`.github/workflows/ci.yml`) — installs dependencies on every push/PR to `main`
+
+### Verified
+- Service runs correctly via `uvicorn` (local) and Docker container
+- CI pipeline passes on GitHub Actions (install-check job green)
+
+### Remaining for Foundation completion
+- Postgres + migration tooling (Alembic)
+- Event bus (NATS/Kafka) client library + smoke test
+- Observability stack (OpenTelemetry, Prometheus, Grafana, Loki)
+- Vault-backed secrets config loader
+- CI pipeline: add lint, test, and security-scan (gitleaks) stages
+- Helm chart skeleton for Kubernetes deployment
