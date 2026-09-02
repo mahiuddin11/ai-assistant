@@ -93,4 +93,11 @@ Regression verification results (confirming prior phases' completion criteria st
 - Observability stack (OpenTelemetry, Prometheus, Grafana, Loki)
 - Vault-backed secrets config loader (currently using plain `POSTGRES_PASSWORD` for local dev only)
 - CI pipeline: add lint, test, and security-scan (gitleaks) stages
-- Helm chart skeleton for Kubernetes deployment
+- Helm chart skeleton for Kubernetes deploymentcd
+
+
+- Local NATS event bus provisioned via Docker (`ai-assistant-nats`, ports `4222`/`8222` mapped to host)
+- Event bus publish/subscribe smoke test script (`scripts/test_event_bus.py`) — verified message delivery on `foundation.test` subject
+
+- NATS server responds on monitoring endpoint (`http://localhost:8222/varz`)
+- Publish/subscribe roundtrip confirmed via Python `nats-py` client — smoke test passed
