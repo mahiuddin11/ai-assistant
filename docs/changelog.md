@@ -62,3 +62,35 @@ Regression verification results (confirming prior phases' completion criteria st
 - Vault-backed secrets config loader
 - CI pipeline: add lint, test, and security-scan (gitleaks) stages
 - Helm chart skeleton for Kubernetes deployment
+
+
+## [Foundation - In Progress] - 2026-08-31
+
+### Added
+- Hello-world dummy service (FastAPI) with `/healthz` and `/readyz` endpoints
+- Dockerfile for hello-world service — verified working locally via `docker build` + `docker run`
+- Basic GitHub Actions CI workflow (`.github/workflows/ci.yml`) — installs dependencies on every push/PR to `main`
+- Local PostgreSQL 16 instance provisioned via Docker (`ai-assistant-postgres` container, port `5432` mapped to host)
+- `ai_assistant` database created
+- Alembic migration tooling set up in `packages/db/` — connected to local PostgreSQL via `sqlalchemy.url`
+- Initial empty-schema Alembic migration created and applied (`alembic upgrade head`)
+
+### Verified
+- Service runs correctly via `uvicorn` (local) and Docker container
+- CI pipeline passes on GitHub Actions (install-check job green)
+- PostgreSQL container reachable from Windows host (`0.0.0.0:5432->5432/tcp`)
+- `SELECT version();` confirms PostgreSQL 16.15 running and connectable
+- Alembic successfully connects to `ai_assistant` database
+- `alembic_version` table created in Postgres after `alembic upgrade head`, confirming migration tracking is functional
+
+### Fixed
+- Corrected PostgreSQL container missing port mapping (`-p 5432:5432`), which initially blocked host-machine connections
+- Corrected PostgreSQL container name typo (`ai-assistent-postgres` → `ai-assistant-postgres`)
+- Switched PostgreSQL auth from `POSTGRES_HOST_AUTH_METHOD=trust` to password-based auth (`POSTGRES_PASSWORD`) for consistency with how Alembic/FastAPI will connect
+
+### Remaining for Foundation completion
+- Event bus (NATS/Kafka) client library + smoke test
+- Observability stack (OpenTelemetry, Prometheus, Grafana, Loki)
+- Vault-backed secrets config loader (currently using plain `POSTGRES_PASSWORD` for local dev only)
+- CI pipeline: add lint, test, and security-scan (gitleaks) stages
+- Helm chart skeleton for Kubernetes deployment
