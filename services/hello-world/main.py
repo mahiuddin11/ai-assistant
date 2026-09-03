@@ -1,6 +1,15 @@
+import os
+
 import structlog
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from prometheus_fastapi_instrumentator import Instrumentator
+
+load_dotenv()
+
+
+ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
+SERVICE_NAME = os.getenv("SERVICE_NAME", "hello-world")
 
 # ---------------------------------------------------------
 # Structured (JSON) logging কনফিগারেশন
@@ -50,8 +59,8 @@ def root():
 
 @app.get("/healthz")
 def healthz():
-    """health check - service is running"""
-    return {"status": "ok"}
+    """লাইভনেস চেক - সার্ভিস চালু আছে কিনা"""
+    return {"status": "ok", "environment": ENVIRONMENT, "service": SERVICE_NAME}
 
 
 @app.get("/readyz")

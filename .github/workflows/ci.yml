@@ -25,5 +25,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Lint with ruff
+        working-directory: services/hello-world
+        run: |
+          pip install ruff
+          ruff check .
+
       - name: Confirm install success
         run: echo "Dependencies installed successfully"
+
