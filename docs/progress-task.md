@@ -822,3 +822,49 @@ Next:
 Task 7 — Structured Logging
         ⏳ PENDING
 ```
+
+
+# Task Progress Tracker
+
+এই ফাইলটা `docs/roadmap.md` ও `docs/requirements.md`-এর পরিপূরক — সেখানে ভার্সন/ফেজ-লেভেল সামারি আছে, এখানে দিনে-দিনে সম্পন্ন হওয়া ছোট টাস্কের বিস্তারিত ট্র্যাকিং রাখা হয়।
+
+---
+
+## Foundation Phase — Task Log
+
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 1 | PostgreSQL local setup via Docker | ✅ Done | 2026-08-31 | Fixed port-mapping + naming issues; see `docs/database-setup.md` |
+| 2 | Alembic migration tooling setup | ✅ Done | 2026-09-01 | `packages/db/` — connected, `alembic upgrade head` verified |
+| 3 | GitHub Actions folder + empty `ci.yml` | ✅ Done | 2026-08-31 | `.github/workflows/ci.yml` created |
+| 4 | NATS event bus via Docker | ✅ Done | 2026-09-02 | `ai-assistant-nats`, ports 4222/8222 |
+| 5 | Event bus publish/subscribe smoke test | ✅ Done | 2026-09-02 | `scripts/test_event_bus.py` — test passed |
+| 6 | Prometheus `/metrics` endpoint | ✅ Done | 2026-09-02 | `prometheus-fastapi-instrumentator` added to hello-world |
+| 7 | Structured JSON logging | ✅ Done | 2026-09-02 | `structlog` middleware logging method/path/status per request |
+| 8 | Dev/staging/prod config separation | ✅ Done | 2026-09-02 | `config/*.env.example` + `.env` loading via `python-dotenv` |
+| 9 | CI lint stage (`ruff`) | ✅ Done | 2026-09-02 | Added to `ci.yml`, verified green on GitHub Actions |
+| 10 | CI secret-scanning (`gitleaks`) | ✅ Done | 2026-09-02 | Added to `ci.yml`, verified green, no secrets detected |
+
+**Foundation task batch 1 (Tasks 1–10): ✅ Complete**
+
+---
+
+## Foundation Phase — Remaining Work
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 11 | Vault-backed secrets config loader | ⬜ Not started | Currently using plain `.env` for dev; staging/prod use placeholders |
+| 12 | Helm chart skeleton for hello-world | ⬜ Not started | Needed for Kubernetes deployment |
+| 13 | Kubernetes dev cluster setup | ⬜ Not started | Likely via `minikube` or `kind` |
+| 14 | Rolling deploy verification on K8s | ⬜ Not started | Depends on 12 + 13 |
+| 15 | CI: automated test stage | ⬜ Not started | No business logic yet to unit test — revisit once v1.0 begins |
+
+---
+
+## How to Use This File
+
+- Every time a small task (not a full roadmap phase) is completed, add a row to the relevant phase's table above.
+- When all tasks for a phase are done and the phase's full release-gate (see `docs/roadmap.md`) passes, mark the phase complete in `docs/changelog.md` with a dated entry, and start a new section here for the next phase (e.g. `## v1.0 MVP — Task Log`).
+- This file is a working log, not a specification — the technical "what must be built" always lives in `docs/requirements.md`.
+
+

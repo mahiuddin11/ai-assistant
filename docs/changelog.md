@@ -111,3 +111,46 @@ Regression verification results (confirming prior phases' completion criteria st
 - JSON log lines confirmed in terminal output for every incoming request
 - Prometheus metrics endpoint now available at `/metrics` — confirms FastAPIInstrumentator integration
 - /healthz and /readyz endpoints implemented for Kubernetes liveness/readiness probes
+
+
+
+## [Foundation - In Progress] - 2026-09-02
+
+### Added
+- Hello-world dummy service (FastAPI) with `/healthz`, `/readyz`, and `/` endpoints
+- Dockerfile for hello-world service
+- Basic GitHub Actions CI workflow (`.github/workflows/ci.yml`)
+- Local PostgreSQL 16 instance provisioned via Docker (`ai-assistant-postgres`, port `5432` mapped to host)
+- `ai_assistant` database created
+- Alembic migration tooling set up in `packages/db/` — connected to local PostgreSQL
+- Initial empty-schema Alembic migration created and applied (`alembic upgrade head`)
+- Local NATS event bus provisioned via Docker (`ai-assistant-nats`, ports `4222`/`8222` mapped to host)
+- Event bus publish/subscribe smoke test script (`scripts/test_event_bus.py`)
+- Prometheus `/metrics` endpoint added to hello-world service (via `prometheus-fastapi-instrumentator`)
+- Structured (JSON) logging middleware added to hello-world service via `structlog`
+- Multi-environment configuration structure (`services/hello-world/config/dev.env.example`, `staging.env.example`, `prod.env.example`) with `.env` loading via `python-dotenv`
+- `ruff` lint stage added to CI pipeline
+- `gitleaks` secret-scanning stage added to CI pipeline
+
+### Verified
+- Service runs correctly via `uvicorn` (local) and Docker container
+- CI pipeline passes on GitHub Actions: install → lint (`ruff`) → secret-scan (`gitleaks`) — all green
+- PostgreSQL container reachable from Windows host (`0.0.0.0:5432->5432/tcp`)
+- Alembic successfully connects to `ai_assistant` database; `alembic_version` table confirms migration tracking works
+- NATS server responds on monitoring endpoint (`http://localhost:8222/varz`)
+- Publish/subscribe roundtrip confirmed via Python `nats-py` client — smoke test passed
+- `/metrics` endpoint returns Prometheus-formatted metrics at `localhost:8000/metrics`
+- JSON log lines confirmed in terminal output for every incoming request
+- `/healthz` returns environment-aware response (`{"status": "ok", "environment": "dev", "service": "hello-world"}`)
+- No hardcoded secrets detected by `gitleaks` in CI
+
+### Fixed
+- Corrected PostgreSQL container missing port mapping (`-p 5432:5432`)
+- Corrected PostgreSQL container name typo (`ai-assistent-postgres` → `ai-assistant-postgres`)
+- Switched PostgreSQL auth from `POSTGRES_HOST_AUTH_METHOD=trust` to password-based auth (`POSTGRES_PASSWORD`)
+
+### Remaining for Foundation completion
+- Vault-backed secrets config loader (currently using plain `.env` for local dev only — staging/prod use placeholder values)
+- Helm chart skeleton for Kubernetes deployment
+- Kubernetes dev cluster + rolling deploy verification
+- CI pipeline: add automated test stage (unit tests not yet written — no business logic exists yet to test)
