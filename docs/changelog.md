@@ -101,3 +101,13 @@ Regression verification results (confirming prior phases' completion criteria st
 
 - NATS server responds on monitoring endpoint (`http://localhost:8222/varz`)
 - Publish/subscribe roundtrip confirmed via Python `nats-py` client — smoke test passed
+
+
+-- Task 8 structured logging
+
+- Structured (JSON) logging middleware added to hello-world service via `structlog` — logs method, path, and status code for every request
+
+
+- JSON log lines confirmed in terminal output for every incoming request
+- Prometheus metrics endpoint now available at `/metrics` — confirms FastAPIInstrumentator integration
+- /healthz and /readyz endpoints implemented for Kubernetes liveness/readiness probes
