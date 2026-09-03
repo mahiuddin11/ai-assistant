@@ -28,9 +28,13 @@ jobs:
       - name: Lint with ruff
         working-directory: services/hello-world
         run: |
-          pip install ruff
           ruff check .
 
+      - name: Scan for secrets with gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Confirm install success
-        run: echo "Dependencies installed successfully"
+        run: echo "Dependencies installed, lint passed, and no secrets detected."
 
