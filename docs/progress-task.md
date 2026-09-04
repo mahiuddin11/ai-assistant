@@ -869,3 +869,6 @@ Task 7 — Structured Logging
 - This file is a working log, not a specification — the technical "what must be built" always lives in `docs/requirements.md`.
 
 
+| 11 | Vault local setup via Docker | ✅ Done | `ai-assistant-vault`, dev-mode, port 8200 |
+| 12 | Vault-based config loader (with .env fallback) | ✅ Done | `services/hello-world/config.py` — verified Vault-first, env-fallback behavior |
+
