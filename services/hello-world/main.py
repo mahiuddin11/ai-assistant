@@ -1,9 +1,9 @@
 import os
 from dotenv import load_dotenv
-
 import structlog
 from fastapi import FastAPI, Request
 from prometheus_fastapi_instrumentator import Instrumentator
+from config import ENVIRONMENT, SERVICE_NAME
 
 load_dotenv()
 
