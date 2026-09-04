@@ -861,6 +861,7 @@ Task 7 — Structured Logging
 
 ---
 
+
 ## How to Use This File
 
 - Every time a small task (not a full roadmap phase) is completed, add a row to the relevant phase's table above.

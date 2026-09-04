@@ -1,7 +1,7 @@
 import os
+from dotenv import load_dotenv
 
 import structlog
-from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -12,7 +12,7 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
 SERVICE_NAME = os.getenv("SERVICE_NAME", "hello-world")
 
 # ---------------------------------------------------------
-# Structured (JSON) logging কনফিগারেশন
+# Structured (JSON) logging configuration
 # ---------------------------------------------------------
 structlog.configure(
     processors=[
@@ -59,11 +59,11 @@ def root():
 
 @app.get("/healthz")
 def healthz():
-    """লাইভনেস চেক - সার্ভিস চালু আছে কিনা"""
-    return {"status": "ok", "environment": ENVIRONMENT, "service": SERVICE_NAME}
+    """Liveness check - is the service running?"""
+    return {"status": "ok", "environment": ENVIRONMENT, "service": SERVICE_NAME}        
 
 
 @app.get("/readyz")
 def readyz():
-    """readiness check - service is ready to take requests"""
+    """Readiness check - is the service ready to accept requests?"""
     return {"status": "ready"}
