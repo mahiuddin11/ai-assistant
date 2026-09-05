@@ -871,4 +871,15 @@ Task 7 — Structured Logging
 
 | 11 | Vault local setup via Docker | ✅ Done | `ai-assistant-vault`, dev-mode, port 8200 |
 | 12 | Vault-based config loader (with .env fallback) | ✅ Done | `services/hello-world/config.py` — verified Vault-first, env-fallback behavior |
+| 13 | Helm chart skeleton for hello-world | ✅ Done | `infrastructure/helm/hello-world/` — `helm lint` passes |
+| 14 | Kubernetes dev cluster setup | ⬜ Not started | Likely via `minikube` or `kind` |
+| 15 | Rolling deploy verification on K8s | ⬜ Not started | Depends on 14 |
+
+
+---
+
+## Environment Notes
+
+- **Helm CLI installed via winget** (`winget install Helm.Helm`) — v4.2.4. If `helm` command is "not recognized" in a new terminal despite successful winget install, the fix that worked: manually verify the binary path via `Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter helm.exe`, then ensure it's in the **User PATH** via `[Environment]::SetEnvironmentVariable("Path", ..., "User")`, and open a **completely new** PowerShell window (not a new tab) to pick up the change.
+
 

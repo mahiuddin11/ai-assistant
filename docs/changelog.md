@@ -55,13 +55,7 @@ Regression verification results (confirming prior phases' completion criteria st
 - Service runs correctly via `uvicorn` (local) and Docker container
 - CI pipeline passes on GitHub Actions (install-check job green)
 
-### Remaining for Foundation completion
-- Postgres + migration tooling (Alembic)
-- Event bus (NATS/Kafka) client library + smoke test
-- Observability stack (OpenTelemetry, Prometheus, Grafana, Loki)
-- Vault-backed secrets config loader
-- CI pipeline: add lint, test, and security-scan (gitleaks) stages
-- Helm chart skeleton for Kubernetes deployment
+
 
 
 ## [Foundation - In Progress] - 2026-08-31
@@ -154,3 +148,20 @@ Regression verification results (confirming prior phases' completion criteria st
 - Helm chart skeleton for Kubernetes deployment
 - Kubernetes dev cluster + rolling deploy verification
 - CI pipeline: add automated test stage (unit tests not yet written — no business logic exists yet to test)
+
+
+- Local HashiCorp Vault instance provisioned via Docker (`ai-assistant-vault`, dev mode, port `8200`)
+- Vault-based config loader (`services/hello-world/config.py`) — reads secrets from Vault first, falls back to `.env`/environment variables if unavailable
+
+- `DATABASE_URL` successfully loaded from Vault (`secret/hello-world` path)
+- `NATS_URL` and `SERVICE_NAME` correctly fall back to `.env` when not present in Vault
+
+- Local HashiCorp Vault instance provisioned via Docker (`ai-assistant-vault`, dev mode, port `8200`)
+- Vault-based config loader (`services/hello-world/config.py`) — reads secrets from Vault first, falls back to `.env`/environment variables if unavailable
+- Helm chart skeleton created for hello-world service (`infrastructure/helm/hello-world/`) via `helm create`
+- Helm CLI (v4.2.4) installed and added to system PATH
+
+- `DATABASE_URL` successfully loaded from Vault (`secret/hello-world` path)
+- `NATS_URL` and `SERVICE_NAME` correctly fall back to `.env` when not present in Vault
+- `helm lint hello-world` passes with no errors
+

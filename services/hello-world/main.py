@@ -1,15 +1,16 @@
-import os
-from dotenv import load_dotenv
+
 import structlog
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from prometheus_fastapi_instrumentator import Instrumentator
+
 from config import ENVIRONMENT, SERVICE_NAME
 
 load_dotenv()
 
 
-ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
-SERVICE_NAME = os.getenv("SERVICE_NAME", "hello-world")
+# ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
+# SERVICE_NAME = os.getenv("SERVICE_NAME", "hello-world")
 
 # ---------------------------------------------------------
 # Structured (JSON) logging configuration
