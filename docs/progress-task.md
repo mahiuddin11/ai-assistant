@@ -883,3 +883,7 @@ Task 7 — Structured Logging
 - **Helm CLI installed via winget** (`winget install Helm.Helm`) — v4.2.4. If `helm` command is "not recognized" in a new terminal despite successful winget install, the fix that worked: manually verify the binary path via `Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter helm.exe`, then ensure it's in the **User PATH** via `[Environment]::SetEnvironmentVariable("Path", ..., "User")`, and open a **completely new** PowerShell window (not a new tab) to pick up the change.
 
 
+| 14 | Kubernetes dev cluster setup | ✅ Done | `kind` cluster `ai-assistant-dev` — node `Ready`, K8s v1.37.0 |
+| 15 | Rolling deploy verification on K8s | ⬜ Not started | Deploy hello-world via Helm to `kind` cluster |
+
+- **`kind` cluster name:** `ai-assistant-dev` — context: `kind-ai-assistant-dev`. Recreate anytime with `kind create cluster --name ai-assistant-dev`; delete with `kind delete cluster --name ai-assistant-dev`.

@@ -165,3 +165,9 @@ Regression verification results (confirming prior phases' completion criteria st
 - `NATS_URL` and `SERVICE_NAME` correctly fall back to `.env` when not present in Vault
 - `helm lint hello-world` passes with no errors
 
+- `kind` (Kubernetes IN Docker) and `kubectl` installed via winget
+- Local Kubernetes dev cluster created (`kind create cluster --name ai-assistant-dev`)
+
+
+- Cluster control plane running and reachable (`kubectl cluster-info`)
+- Node status `Ready` confirmed via `kubectl get nodes` (Kubernetes v1.37.0)
