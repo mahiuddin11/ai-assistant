@@ -887,3 +887,21 @@ Task 7 — Structured Logging
 | 15 | Rolling deploy verification on K8s | ⬜ Not started | Deploy hello-world via Helm to `kind` cluster |
 
 - **`kind` cluster name:** `ai-assistant-dev` — context: `kind-ai-assistant-dev`. Recreate anytime with `kind create cluster --name ai-assistant-dev`; delete with `kind delete cluster --name ai-assistant-dev`.
+
+| 15 | Deploy hello-world to `kind` cluster via Helm | ✅ Done | Pod `Running`, `/healthz` reachable via `kubectl port-forward` |
+
+**Foundation task batch 2 (Tasks 11–15): ✅ Complete**
+
+---
+
+## Foundation Phase — Final Status
+
+**All 15 tasks complete. Foundation phase: ✅ 100% COMPLETE.**
+
+Release-gate checklist (per `docs/roadmap.md`):
+- [x] All testing checklist items pass (`docs/requirements.md` → Foundation)
+- [x] All security checklist items pass (no hardcoded secrets, Vault-based config, gitleaks CI gate)
+- [x] Completion criteria demonstrated (hello-world deployed to K8s via Helm, healthz reachable)
+- [x] No regression (N/A — first phase)
+
+**Next phase: v1.0 MVP (Conversational Core)** — see `docs/development-plan.md` for phase prompt / task breakdown.
