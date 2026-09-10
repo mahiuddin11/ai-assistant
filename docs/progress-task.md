@@ -905,3 +905,16 @@ Release-gate checklist (per `docs/roadmap.md`):
 - [x] No regression (N/A — first phase)
 
 **Next phase: v1.0 MVP (Conversational Core)** — see `docs/development-plan.md` for phase prompt / task breakdown.
+
+
+---
+
+## v1.0 MVP — Task Log
+
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 16 | Scaffold `auth-service` + extract shared `config_loader` package | ✅ Done | 2026-09-10 | `packages/config-loader/`, `services/auth-service/main.py` — runs on port 8001 |
+| 17 | Create `users`, `tenants`, `sessions` tables (Alembic) | ✅ Done | 2026-09-10 | Migration `23f89786890d`; `pgcrypto` extension enabled for UUID PKs |
+| 18 | Password hashing + `POST /v1/auth/login` | ⬜ In Progress | | |
+| 19 | JWT issuance + `POST /v1/auth/refresh` | ⬜ Not started | | |
+
