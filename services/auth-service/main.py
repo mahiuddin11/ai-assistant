@@ -1,9 +1,14 @@
 import sys
 import os
 import structlog
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, HTTPException
+from pydantic import BaseModel, EmailStr
+from sqlalchemy.orm import Session
 
-# শেয়ার্ড config-loader প্যাকেজ ব্যবহার করার জন্য পাথ যোগ
+from database import get_db
+from models import User
+from auth import verify_password
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
 from config_loader import get_secret  # noqa: E402
 
@@ -48,3 +53,23 @@ def healthz():
 @app.get("/readyz")
 def readyz():
     return {"status": "ready"}
+
+
+# ---------------------------------------------------------
+# Login
+# ---------------------------------------------------------
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+@app.post("/v1/auth/login")
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == payload.email).first()
+
+    if not user or not verify_password(payload.password, user.password_hash):
+        logger.warning("login_failed", email=payload.email)
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    logger.info("login_success", user_id=str(user.id))
+    return {"message": "Login successful", "user_id": str(user.id)}

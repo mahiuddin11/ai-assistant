@@ -918,3 +918,7 @@ Release-gate checklist (per `docs/roadmap.md`):
 | 18 | Password hashing + `POST /v1/auth/login` | ⬜ In Progress | | |
 | 19 | JWT issuance + `POST /v1/auth/refresh` | ⬜ Not started | | |
 
+
+
+| 18 | Password hashing + `POST /v1/auth/login` | ✅ Done | 2026-09-11 | `database.py`, `models.py`, `auth.py` added; bcrypt version pinned to 4.0.1; login tested successfully via `/docs` |
+| 19 | JWT issuance + `POST /v1/auth/refresh` | ⬜ Not started | | |
