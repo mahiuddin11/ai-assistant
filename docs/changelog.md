@@ -225,3 +225,39 @@ The manual-deploy portion of this criterion is now demonstrated (Helm deploy to 
 ---
 
 **Foundation phase: COMPLETE. Proceeding to v1.0 MVP (Conversational Core).**
+
+
+## [v1.0 MVP - In Progress] - 2026-09-10
+
+### Added
+- `services/auth-service/` scaffolded — FastAPI skeleton with `/healthz`, `/readyz`, `/` endpoints
+- Shared `packages/config-loader/` package created — extracted Vault-first/`.env`-fallback config logic from hello-world so multiple services can reuse it (`get_secret(key, vault_path, default)`)
+- `tenants`, `users`, `sessions` tables created via Alembic migration (`packages/db/migrations/versions/23f89786890d_...`)
+- `pgcrypto` PostgreSQL extension enabled (required for `gen_random_uuid()` primary keys)
+
+### Verified
+- auth-service runs independently on port `8001`, alongside hello-world on port `8000`
+- `config_loader.get_secret()` correctly attempts Vault first (`secret/auth-service` path), falls back to `.env`/env vars, and logs the outcome — confirmed via `secret_not_found` warning (expected, since no `auth-service` secret exists in Vault yet)
+- Migration applied cleanly: `alembic upgrade head` ran `5992aadbdc81 -> 23f89786890d` with no errors
+- `\dt` in psql confirms all 4 tables exist: `alembic_version`, `sessions`, `tenants`, `users`
+
+### Notes
+- `DATABASE_URL` for auth-service not yet set in Vault — will be added when the service starts performing real queries (task 18+)
+
+
+### Added (continued)
+- `passlib[bcrypt]` password hashing integrated into auth-service
+- `database.py` — SQLAlchemy engine/session setup for auth-service, using `DATABASE_URL` from Vault via `config_loader`
+- `models.py` — SQLAlchemy ORM models (`Tenant`, `User`) mapped to existing `tenants`/`users` tables
+- `auth.py` — `hash_password()` / `verify_password()` helpers using bcrypt
+- `POST /v1/auth/login` endpoint — validates email/password against `users` table, returns `user_id` on success
+
+### Verified
+- Login endpoint tested via Swagger UI (`/docs`) — returns `200 OK` with `{"message": "Login successful", "user_id": "..."}` for correct credentials
+- Incorrect credentials correctly return `401 Unauthorized`
+- `config_loader` confirmed pulling `DATABASE_URL` from Vault (`secret/auth-service` path) at service startup
+
+### Fixed
+- Resolved `passlib`/`bcrypt` version incompatibility (newer `bcrypt` 5.x breaks `passlib`'s version detection) — pinned `bcrypt==4.0.1`
+- Resolved missing `email-validator` dependency required by Pydantic's `EmailStr` — added `pydantic[email]` to requirements
+- Corrected a manual SQL `INSERT` mistake (tenant_id/password_hash values swapped) before it reached a committed state — no bad data persisted

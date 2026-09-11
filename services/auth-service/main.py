@@ -6,8 +6,19 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import User
-from auth import verify_password
+
+
+from datetime import datetime, timedelta, timezone
+from models import User, Session as SessionModel
+from auth import (
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+    hash_refresh_token,
+    verify_refresh_token,
+    decode_access_token,
+    REFRESH_TOKEN_EXPIRE_DAYS,
+)
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
 from config_loader import get_secret  # noqa: E402
@@ -71,5 +82,61 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         logger.warning("login_failed", email=payload.email)
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    access_token = create_access_token(str(user.id))
+    refresh_token = create_refresh_token()
+
+    session = SessionModel(
+        user_id=user.id,
+        refresh_token_hash=hash_refresh_token(refresh_token),
+        expires_at=datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+    db.add(session)
+    db.commit()
+
     logger.info("login_success", user_id=str(user.id))
-    return {"message": "Login successful", "user_id": str(user.id)}
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+@app.post("/v1/auth/refresh")
+def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
+    sessions = db.query(SessionModel).filter(
+        SessionModel.expires_at > datetime.now(timezone.utc)
+    ).all()
+
+    matched_session = None
+    for s in sessions:
+        if verify_refresh_token(payload.refresh_token, s.refresh_token_hash):
+            matched_session = s
+            break
+
+    if matched_session is None:
+        logger.warning("refresh_failed")
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+
+    db.delete(matched_session)
+
+    new_access_token = create_access_token(str(matched_session.user_id))
+    new_refresh_token = create_refresh_token()
+
+    new_session = SessionModel(
+        user_id=matched_session.user_id,
+        refresh_token_hash=hash_refresh_token(new_refresh_token),
+        expires_at=datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+    db.add(new_session)
+    db.commit()
+
+    logger.info("refresh_success", user_id=str(matched_session.user_id))
+    return {
+        "access_token": new_access_token,
+        "refresh_token": new_refresh_token,
+        "token_type": "bearer",
+    }
