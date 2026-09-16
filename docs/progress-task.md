@@ -924,3 +924,6 @@ Release-gate checklist (per `docs/roadmap.md`):
 | 19 | JWT issuance + `POST /v1/auth/refresh` | ⬜ Not started | | |
 
 | 19 | JWT issuance + `POST /v1/auth/refresh` | ✅ Done | 2026-09-11 | Access token (15min) + opaque refresh token (7day, bcrypt-hashed in `sessions`); rotation + reuse-rejection verified |
+
+| 20 | Scaffold `conversation-service` | ✅ Done | 2026-09-12 | `services/conversation-service/main.py` — runs on port 8002, uses shared `config_loader` |
+| 21 | Grok + OpenAI dual-provider LLM integration | ⬜ In Progress | | Grok primary, OpenAI fallback — see `docs/decisions.md` ADR-003 update |

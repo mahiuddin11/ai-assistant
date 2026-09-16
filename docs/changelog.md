@@ -261,3 +261,29 @@ The manual-deploy portion of this criterion is now demonstrated (Helm deploy to 
 - Resolved `passlib`/`bcrypt` version incompatibility (newer `bcrypt` 5.x breaks `passlib`'s version detection) — pinned `bcrypt==4.0.1`
 - Resolved missing `email-validator` dependency required by Pydantic's `EmailStr` — added `pydantic[email]` to requirements
 - Corrected a manual SQL `INSERT` mistake (tenant_id/password_hash values swapped) before it reached a committed state — no bad data persisted
+
+
+
+### Added (continued)
+- JWT access token issuance (`create_access_token`, 15-minute expiry, HS256) in `auth.py`
+- Opaque refresh token generation with bcrypt-hashed storage in `sessions` table (7-day expiry)
+- `POST /v1/auth/refresh` endpoint — validates refresh token against active sessions, rotates to a new access+refresh token pair, invalidates the old session
+- `login()` updated to return `access_token`, `refresh_token`, `token_type` instead of just `user_id`
+- `JWT_SECRET` added to Vault (`secret/auth-service` path)
+
+### Verified
+- `POST /v1/auth/login` returns valid access+refresh token pair (200 OK)
+- `POST /v1/auth/refresh` successfully rotates tokens on first use (200 OK)
+- Reusing an already-rotated (stale) refresh token is correctly rejected (401 Unauthorized, `refresh_failed` logged) — confirms rotation invalidates old sessions as intended
+
+### Known Limitation (documented, not blocking for MVP)
+- Refresh token lookup currently iterates all active sessions and verifies bcrypt hash against each — acceptable at MVP scale, but not indexable/scalable. To be revisited during v2.0 Permission Engine hardening.
+
+### Added (continued)
+- `services/conversation-service/` scaffolded — FastAPI skeleton with `/healthz`, `/readyz`, `/` endpoints, following the same pattern as `hello-world` and `auth-service`
+- Service uses shared `packages/config-loader/` for Vault-first/`.env`-fallback configuration
+- `DATABASE_URL` secret added to Vault under `secret/conversation-service` path
+
+### Verified
+- conversation-service runs independently on port `8002`, alongside hello-world (8000) and auth-service (8001)
+- `/healthz` returns `{"status": "ok", "service": "conversation-service", "environment": "dev"}`
