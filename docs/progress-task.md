@@ -915,20 +915,10 @@ Release-gate checklist (per `docs/roadmap.md`):
 |---|---|---|---|---|
 | 16 | Scaffold `auth-service` + extract shared `config_loader` package | ✅ Done | 2026-09-10 | `packages/config-loader/`, `services/auth-service/main.py` — runs on port 8001 |
 | 17 | Create `users`, `tenants`, `sessions` tables (Alembic) | ✅ Done | 2026-09-10 | Migration `23f89786890d`; `pgcrypto` extension enabled for UUID PKs |
-| 18 | Password hashing + `POST /v1/auth/login` | ⬜ In Progress | | |
-| 19 | JWT issuance + `POST /v1/auth/refresh` | ⬜ Not started | | |
-
-
-
 | 18 | Password hashing + `POST /v1/auth/login` | ✅ Done | 2026-09-11 | `database.py`, `models.py`, `auth.py` added; bcrypt version pinned to 4.0.1; login tested successfully via `/docs` |
-| 19 | JWT issuance + `POST /v1/auth/refresh` | ⬜ Not started | | |
-
 | 19 | JWT issuance + `POST /v1/auth/refresh` | ✅ Done | 2026-09-11 | Access token (15min) + opaque refresh token (7day, bcrypt-hashed in `sessions`); rotation + reuse-rejection verified |
-
 | 20 | Scaffold `conversation-service` | ✅ Done | 2026-09-12 | `services/conversation-service/main.py` — runs on port 8002, uses shared `config_loader` |
-| 21 | Grok + OpenAI dual-provider LLM integration | ⬜ In Progress | | Grok primary, OpenAI fallback — see `docs/decisions.md` ADR-003 update |
-
-
 | 21 | Multi-provider LLM integration (Gemini → Claude → OpenAI → Grok) | ✅ Done | 2026-09-12 | `llm_client.py` — registry pattern, graceful skip on missing keys; `/v1/test/chat` verified with Gemini |
-| 22 | Redis working memory | ⬜ Not started | | |
+| 22 | Redis working memory | ✅ Done | 2026-09-12 | `working_memory.py` — Redis 7 session context (1hr TTL, 20 max msgs FIFO); multi-turn context retention verified |
+| 23 | Conversation persistence (PostgreSQL) + full REST endpoints | ⬜ Not started | | `conversations` & `messages` tables, `/v1/conversations` endpoints |
 
