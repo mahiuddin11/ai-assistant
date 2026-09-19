@@ -1,7 +1,3 @@
-"""
-শেয়ার্ড Config Loader — Vault-first, .env fallback।
-প্রতিটা সার্ভিস এটা import করে নিজের vault_path দিয়ে ব্যবহার করবে।
-"""
 
 import os
 import structlog
@@ -33,10 +29,7 @@ def _get_vault_client():
 
 
 def get_secret(key: str, vault_path: str, default: str | None = None) -> str | None:
-    """
-    Vault-এর secret/<vault_path> থেকে key পড়ার চেষ্টা করে।
-    না পেলে .env / environment variable থেকে পড়ে।
-    """
+
     client = _get_vault_client()
 
     if client is not None:

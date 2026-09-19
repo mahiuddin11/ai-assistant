@@ -32,7 +32,6 @@ def create_access_token(user_id: str) -> str:
 
 
 def create_refresh_token() -> str:
-   
     return uuid.uuid4().hex + uuid.uuid4().hex
 
 

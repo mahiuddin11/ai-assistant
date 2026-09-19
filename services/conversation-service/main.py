@@ -1,6 +1,9 @@
 import sys
 import os
 import structlog
+from pydantic import BaseModel
+from fastapi import HTTPException
+from llm_client import send_message
 from fastapi import FastAPI, Request
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
@@ -47,3 +50,17 @@ def healthz():
 @app.get("/readyz")
 def readyz():
     return {"status": "ready"}
+
+
+class ChatTestRequest(BaseModel):
+    message: str
+
+
+@app.post("/v1/test/chat")
+def test_chat(payload: ChatTestRequest):
+    try:
+        result = send_message(payload.message)
+        return result
+    except RuntimeError as e:
+        logger.error("chat_test_failed", error=str(e))
+        raise HTTPException(status_code=503, detail="AI service temporarily unavailable")

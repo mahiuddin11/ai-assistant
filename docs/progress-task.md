@@ -927,3 +927,8 @@ Release-gate checklist (per `docs/roadmap.md`):
 
 | 20 | Scaffold `conversation-service` | ✅ Done | 2026-09-12 | `services/conversation-service/main.py` — runs on port 8002, uses shared `config_loader` |
 | 21 | Grok + OpenAI dual-provider LLM integration | ⬜ In Progress | | Grok primary, OpenAI fallback — see `docs/decisions.md` ADR-003 update |
+
+
+| 21 | Multi-provider LLM integration (Gemini → Claude → OpenAI → Grok) | ✅ Done | 2026-09-12 | `llm_client.py` — registry pattern, graceful skip on missing keys; `/v1/test/chat` verified with Gemini |
+| 22 | Redis working memory | ⬜ Not started | | |
+
