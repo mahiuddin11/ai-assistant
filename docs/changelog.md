@@ -287,3 +287,17 @@ The manual-deploy portion of this criterion is now demonstrated (Helm deploy to 
 ### Verified
 - conversation-service runs independently on port `8002`, alongside hello-world (8000) and auth-service (8001)
 - `/healthz` returns `{"status": "ok", "service": "conversation-service", "environment": "dev"}`
+
+
+### Added (continued)
+- `llm_client.py` in conversation-service — multi-provider LLM fallback chain: **Gemini → Claude → OpenAI → Grok**
+- Provider registry pattern — each provider's API key is checked independently in Vault; missing keys cause that provider to be silently skipped rather than erroring
+- Unified `call()` interface normalizing OpenAI-compatible SDK calls (Gemini, OpenAI, Grok) and the Anthropic SDK (Claude) behind one function signature
+- `/v1/test/chat` endpoint returns `provider_used` alongside `reply`, indicating which provider actually served the response
+
+### Verified
+- `send_message()` successfully calls Gemini (first in the chain) and returns a valid reply with `provider_used: "gemini"`
+- Startup log confirms active provider list (`llm_providers_active`) based on which API keys are present in Vault
+
+### Changed
+- Superseded the earlier single-provider (Anthropic-only) and two-provider (Grok+OpenAI) designs — see `docs/decisions.md` ADR-003 for the final multi-provider rationale
