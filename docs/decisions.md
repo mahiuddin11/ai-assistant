@@ -46,6 +46,16 @@ This document records the key design decisions embedded in the project's archite
 - Prompt engineering, function-calling patterns, and retry/timeout handling are designed around the Claude API's interface.
 - Provider-specific integration work is concentrated in the Conversational Agent Service and later the AI-OS Core dispatch layer.
 
+**Update — 2026-09-12:** Superseded in part. The Conversational Agent Service (v1.0) uses a
+dual-provider model instead: xAI Grok as primary, with automatic fallback to OpenAI if the
+Grok call fails (timeout, rate limit, or API error). Anthropic Claude remains the reasoning
+model used within Claude Code / Claude-based tooling for this project's own development, but
+is not the LLM the deployed Conversational Agent Service calls at runtime. Rationale: provider
+redundancy for the MVP's core chat feature — a single-provider outage should not take down the
+conversational core. Consequence: `services/conversation-service` requires two API keys (Grok,
+OpenAI) in Vault instead of one, and prompt/response handling must normalize across two
+slightly different API shapes.
+
 ---
 
 ## ADR-004: Sandboxed Plugin/Tool Execution (WASM/gVisor)
