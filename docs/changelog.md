@@ -303,3 +303,15 @@ The manual-deploy portion of this criterion is now demonstrated (Helm deploy to 
 - Superseded the earlier single-provider (Anthropic-only) and two-provider (Grok+OpenAI) designs — see `docs/decisions.md` ADR-003 for the final multi-provider rationale
 
 
+### Added (continued)
+- `conversations`, `messages` tables created via Alembic migration
+- `database.py`, `models.py` (Conversation, Message) added to conversation-service
+- `POST /v1/conversations` — creates a new conversation
+- `POST /v1/conversations/{id}/messages` — sends a message, loads history from PostgreSQL, calls the LLM fallback chain, persists both user and assistant messages (with `provider_used`)
+- `GET /v1/conversations/{id}/history` — returns full persistent message history for a conversation
+
+### Verified
+- End-to-end multi-turn test confirms both persistence and memory: a name stated in one message was correctly recalled in a later message within the same conversation
+- `GET /v1/conversations/{id}/history` returns all messages in correct chronological order with accurate timestamps and `provider_used` tracking
+
+

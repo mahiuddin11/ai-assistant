@@ -960,3 +960,8 @@ Release-gate checklist (per `docs/roadmap.md`):
 | 35 | v1.0 Release Gate Verification (Unit test ≥70%, E2E test, Load test, Security scan) | ⬜ Not started | | Final release verification |
 
 
+
+
+| 23 | Persistent conversations — `POST /v1/conversations`, `POST /v1/conversations/{id}/messages`, `GET /v1/conversations/{id}/history` | ✅ Done | 2026-09-20 | End-to-end multi-turn memory test passed; Redis (working memory) + PostgreSQL (persistent history) both verified |
+
+**Group B (Conversational Agent Service, Tasks 20–23): ✅ Complete**
