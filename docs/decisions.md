@@ -46,17 +46,29 @@ This document records the key design decisions embedded in the project's archite
 - Prompt engineering, function-calling patterns, and retry/timeout handling are designed around the Claude API's interface.
 - Provider-specific integration work is concentrated in the Conversational Agent Service and later the AI-OS Core dispatch layer.
 
-**Update — 2026-09-12:** Superseded in part. The Conversational Agent Service (v1.0) uses a
-dual-provider model instead: xAI Grok as primary, with automatic fallback to OpenAI if the
-Grok call fails (timeout, rate limit, or API error). Anthropic Claude remains the reasoning
-model used within Claude Code / Claude-based tooling for this project's own development, but
-is not the LLM the deployed Conversational Agent Service calls at runtime. Rationale: provider
-redundancy for the MVP's core chat feature — a single-provider outage should not take down the
-conversational core. Consequence: `services/conversation-service` requires two API keys (Grok,
-OpenAI) in Vault instead of one, and prompt/response handling must normalize across two
-slightly different API shapes.
 
----
+**Update — 2026-09-12 (final):** Superseded. The Conversational Agent Service (v1.0) uses a
+multi-provider fallback chain instead of a single LLM: **Gemini → Claude → OpenAI → Grok**, tried
+in that order until one succeeds. Each provider is optional — if its API key is absent from
+Vault, it is silently skipped from the fallback chain rather than causing an error, so the
+service degrades gracefully as keys are added or removed. Anthropic Claude remains in the chain
+(as the second provider) but is no longer the sole/primary runtime LLM; it is also still the
+reasoning model used within Claude Code / Claude-based tooling for this project's own
+development, which is a separate, unrelated use of Claude.
+
+**Rationale:** provider redundancy for the MVP's core chat feature — no single provider outage
+or rate-limit should take the conversational core down, and providers can be swapped or added
+without code changes (registry pattern in `llm_client.py`).
+
+**Consequences:**
+- `services/conversation-service` can hold up to four API keys in Vault (`GEMINI_API_KEY`,
+  `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GROK_API_KEY`), only one of which is required.
+- `llm_client.py` normalizes two different SDK shapes (OpenAI-compatible `chat.completions.create`
+  for Gemini/OpenAI/Grok, and Anthropic's `messages.create` for Claude) behind one `call()`
+  interface per provider.
+- Every response now returns `provider_used`, so which provider actually served a given reply is
+  always visible in logs and API responses — useful for cost tracking and debugging in later
+  phases (e.g. v5.1 Governance's Cost Governance Service).
 
 ## ADR-004: Sandboxed Plugin/Tool Execution (WASM/gVisor)
 

@@ -911,14 +911,52 @@ Release-gate checklist (per `docs/roadmap.md`):
 
 ## v1.0 MVP — Task Log
 
+### গ্রুপ A — Auth & Identity Service (টাস্ক ১৬-১৯)
 | # | Task | Status | Date | Notes |
 |---|---|---|---|---|
 | 16 | Scaffold `auth-service` + extract shared `config_loader` package | ✅ Done | 2026-09-10 | `packages/config-loader/`, `services/auth-service/main.py` — runs on port 8001 |
 | 17 | Create `users`, `tenants`, `sessions` tables (Alembic) | ✅ Done | 2026-09-10 | Migration `23f89786890d`; `pgcrypto` extension enabled for UUID PKs |
 | 18 | Password hashing + `POST /v1/auth/login` | ✅ Done | 2026-09-11 | `database.py`, `models.py`, `auth.py` added; bcrypt version pinned to 4.0.1; login tested successfully via `/docs` |
 | 19 | JWT issuance + `POST /v1/auth/refresh` | ✅ Done | 2026-09-11 | Access token (15min) + opaque refresh token (7day, bcrypt-hashed in `sessions`); rotation + reuse-rejection verified |
+
+### গ্রুপ B — Conversational Agent Service (টাস্ক ২০-২৩)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
 | 20 | Scaffold `conversation-service` | ✅ Done | 2026-09-12 | `services/conversation-service/main.py` — runs on port 8002, uses shared `config_loader` |
 | 21 | Multi-provider LLM integration (Gemini → Claude → OpenAI → Grok) | ✅ Done | 2026-09-12 | `llm_client.py` — registry pattern, graceful skip on missing keys; `/v1/test/chat` verified with Gemini |
 | 22 | Redis working memory | ✅ Done | 2026-09-12 | `working_memory.py` — Redis 7 session context (1hr TTL, 20 max msgs FIFO); multi-turn context retention verified |
-| 23 | Conversation persistence (PostgreSQL) + full REST endpoints | ⬜ Not started | | `conversations` & `messages` tables, `/v1/conversations` endpoints |
+| 23 | Conversation persistence (PostgreSQL) + full REST endpoints | ⬜ Not started | | `conversations` & `messages` tables, `POST /v1/conversations`, `GET /v1/conversations/{id}/history` |
+
+### গ্রুপ C — Semantic Memory (টাস্ক ২৪-২৬)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 24 | Qdrant Docker setup & connection verification | ⬜ Not started | | Qdrant vector database container |
+| 25 | `memory_semantic` table (Postgres) + `semantic_memory` collection (Qdrant) | ⬜ Not started | | Vector embedding storage & schema |
+| 26 | Basic RAG logic (retrieve top-k facts & prompt injection) | ⬜ Not started | | Semantic recall injected into LLM prompt |
+
+### গ্রুপ D — Web Search Tool (টাস্ক ২৭-২৮)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 27 | Tool SDK v1 (manifest-based tool interface) | ⬜ Not started | | Abstract class/interface for plugin tools |
+| 28 | Web Search Tool implementation (with API-down fallback) | ⬜ Not started | | Web search agent tool integration |
+
+### গ্রুপ E — Permission Engine (টাস্ক ২৯-৩০)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 29 | `permissions` & `permission_audit_log` tables (Alembic) + Grant/Revoke APIs | ⬜ Not started | | Append-only audit log & coarse-grained permissions |
+| 30 | Coarse-grained allow/deny check before tool execution | ⬜ Not started | | Permission gate before executing tools |
+
+### গ্রুপ F — Task Management Engine (টাস্ক ৩১-৩২)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 31 | `tasks` table + state machine (queued → running → completed/failed) | ⬜ Not started | | Task lifecycle management |
+| 32 | `GET /v1/tasks/{id}` endpoint + NATS events (`task.created/updated/completed`) | ⬜ Not started | | Async event publishing via NATS |
+
+### গ্রুপ G — Minimal Web UI + টেস্টিং/সিকিউরিটি (টাস্ক ৩৩-৩৫)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 33 | Minimal Web UI — Login page + Chat window (Desktop-first) | ⬜ Not started | | Frontend for user interaction |
+| 34 | Permission-grant confirmation modal + Settings page | ⬜ Not started | | Interactive permission confirmation UI |
+| 35 | v1.0 Release Gate Verification (Unit test ≥70%, E2E test, Load test, Security scan) | ⬜ Not started | | Final release verification |
+
 

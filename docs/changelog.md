@@ -302,16 +302,4 @@ The manual-deploy portion of this criterion is now demonstrated (Helm deploy to 
 ### Changed
 - Superseded the earlier single-provider (Anthropic-only) and two-provider (Grok+OpenAI) designs — see `docs/decisions.md` ADR-003 for the final multi-provider rationale
 
-### Added (Task 22: Redis Working Memory)
-- Dockerized Redis 7 (`ai-assistant-redis` container, port `6379`)
-- `redis==5.2.0` dependency added to `services/conversation-service/requirements.txt`
-- `REDIS_URL` secret configured in HashiCorp Vault (`secret/conversation-service` path)
-- `services/conversation-service/working_memory.py` — Redis-backed session memory store:
-  - 1-hour session inactivity TTL (`SESSION_TTL_SECONDS = 3600`) with auto-refresh on each append
-  - Sliding window capped at 20 messages max (`MAX_MESSAGES_IN_MEMORY = 20`, FIFO eviction)
-  - `get_history()`, `append_message()`, and `clear_history()` (right-to-forget support)
-- `/v1/test/chat` updated to accept optional `conversation_id`, retrieve prior session history, prepend history context to LLM prompt, and store user & assistant messages in Redis
 
-### Verified
-- Multi-turn conversation context retention confirmed via `/v1/test/chat` (e.g. remembering user name across distinct API requests using `conversation_id`)
-- Fallback to generated UUID when `conversation_id` is omitted in the initial request
