@@ -965,3 +965,6 @@ Release-gate checklist (per `docs/roadmap.md`):
 | 23 | Persistent conversations — `POST /v1/conversations`, `POST /v1/conversations/{id}/messages`, `GET /v1/conversations/{id}/history` | ✅ Done | 2026-09-20 | End-to-end multi-turn memory test passed; Redis (working memory) + PostgreSQL (persistent history) both verified |
 
 **Group B (Conversational Agent Service, Tasks 20–23): ✅ Complete**
+
+| 24 | Qdrant vector DB setup via Docker | ✅ Done | 2026-09-20 | `ai-assistant-qdrant`, ports 6333/6334; connection verified via `qdrant-client` |
+| 25 | `memory_semantic` table + `semantic_memory` Qdrant collection | ⬜ Not started | | |
