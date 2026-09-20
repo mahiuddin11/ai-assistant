@@ -10,4 +10,4 @@ QDRANT_URL = get_secret("QDRANT_URL", vault_path="conversation-service", default
 client = QdrantClient(url=QDRANT_URL)
 
 print("Qdrant collections:", client.get_collections())
-print("✅ Qdrant connection successful")
+print("Qdrant connection successful")
