@@ -13,6 +13,7 @@ from models import Conversation, Message
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
 from working_memory import get_history, append_message
+# pyrefly: ignore [missing-import]
 from config_loader import get_secret  # noqa: E402
 
 structlog.configure(

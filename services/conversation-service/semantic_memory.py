@@ -7,6 +7,7 @@ from qdrant_client.models import PointStruct
 from sqlalchemy.orm import Session
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
+# pyrefly: ignore [missing-import]
 from config_loader import get_secret  # noqa: E402
 
 from embeddings import get_embedding

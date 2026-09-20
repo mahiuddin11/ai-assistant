@@ -3,6 +3,7 @@ import os
 from qdrant_client import QdrantClient
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
+# pyrefly: ignore [missing-import]
 from config_loader import get_secret  # noqa: E402
 
 QDRANT_URL = get_secret("QDRANT_URL", vault_path="conversation-service", default="http://localhost:6333")
