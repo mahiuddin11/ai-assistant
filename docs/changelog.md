@@ -314,4 +314,16 @@ The manual-deploy portion of this criterion is now demonstrated (Helm deploy to 
 - End-to-end multi-turn test confirms both persistence and memory: a name stated in one message was correctly recalled in a later message within the same conversation
 - `GET /v1/conversations/{id}/history` returns all messages in correct chronological order with accurate timestamps and `provider_used` tracking
 
+### Added (Task 25 - Semantic Memory Storage)
+- `memory_semantic` table created in PostgreSQL via Alembic migration (`472a5c0234fe`)
+- `semantic_memory` collection created in Qdrant (768-dim, Cosine distance)
+- `embeddings.py` using `google-genai` SDK with `gemini-embedding-001` (768-dimensional embeddings)
+- `semantic_memory.py` with `store_memory` (dual storage to Qdrant + PostgreSQL) and `retrieve_relevant_memories` using `query_points`
+- `MemorySemantic` model added to `models.py`
+- Integration test script `test_semantic_memory.py`
+
+### Verified
+- Dual-storage pipeline verified: facts successfully saved to both Qdrant and PostgreSQL
+- Semantic vector search tested: querying "What does the user like to code in?" successfully matched and retrieved "The user's favorite programming language is Python."
+
 

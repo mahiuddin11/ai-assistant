@@ -7,6 +7,7 @@ from passlib.context import CryptContext
 
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
+# pyrefly: ignore [missing-import]
 from config_loader import get_secret  # noqa: E402
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

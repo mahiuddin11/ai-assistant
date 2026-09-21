@@ -967,4 +967,5 @@ Release-gate checklist (per `docs/roadmap.md`):
 **Group B (Conversational Agent Service, Tasks 20–23): ✅ Complete**
 
 | 24 | Qdrant vector DB setup via Docker | ✅ Done | 2026-09-20 | `ai-assistant-qdrant`, ports 6333/6334; connection verified via `qdrant-client` |
-| 25 | `memory_semantic` table + `semantic_memory` Qdrant collection | ⬜ Not started | | |
+| 25 | `memory_semantic` table + `semantic_memory` Qdrant collection | ✅ Done | 2026-09-21 | Postgres table + Qdrant collection (768-dim, Cosine); embeddings & semantic retrieval tested |
+
