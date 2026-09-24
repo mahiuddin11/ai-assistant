@@ -4,6 +4,7 @@ import structlog
 from fastapi import FastAPI, Request, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
+from permissions import grant_permission, revoke_permission
 
 from database import get_db
 
@@ -141,3 +142,21 @@ def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
         "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
+
+class PermissionRequest(BaseModel):
+    user_id: str
+    tool_name: str
+
+
+@app.post("/v1/permissions/grant")
+def grant_permission_endpoint(payload: PermissionRequest, db: Session = Depends(get_db)):
+    permission = grant_permission(db, payload.user_id, payload.tool_name)
+    return {"status": "granted", "tool_name": payload.tool_name, "permission_id": str(permission.id)}
+
+
+@app.post("/v1/permissions/revoke")
+def revoke_permission_endpoint(payload: PermissionRequest, db: Session = Depends(get_db)):
+    success = revoke_permission(db, payload.user_id, payload.tool_name)
+    if not success:
+        raise HTTPException(status_code=404, detail="No active permission found to revoke")
+    return {"status": "revoked", "tool_name": payload.tool_name}
