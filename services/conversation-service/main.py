@@ -13,6 +13,7 @@ from models import Conversation, Message
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
 from working_memory import get_history, append_message
+from semantic_memory import retrieve_relevant_memories
 # pyrefly: ignore [missing-import]
 from config_loader import get_secret  # noqa: E402
 
@@ -30,6 +31,21 @@ DATABASE_URL = get_secret("DATABASE_URL", vault_path="conversation-service")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
 
 app = FastAPI(title="Conversational Agent Service")
+
+
+def build_rag_system_prompt(memories: list[str]) -> str:
+    """Qdrant থেকে প্রাপ্ত প্রাসঙ্গিক মেমোরি দিয়ে LLM সিস্টেম প্রম্পট সমৃদ্ধ করে।"""
+    base_prompt = "You are a helpful AI assistant."
+    if not memories:
+        return base_prompt
+
+    memory_bullets = "\n".join(f"- {m}" for m in memories)
+    return (
+        f"{base_prompt}\n\n"
+        f"Relevant background context from memory:\n"
+        f"{memory_bullets}\n\n"
+        f"Use the background context when relevant to provide personalized and accurate responses."
+    )
 
 
 @app.middleware("http")
@@ -76,13 +92,17 @@ def test_chat(payload: ChatTestRequest):
     # এখনকার user মেসেজ history-তে যোগ করা (LLM-কে পাঠানোর আগে)
     append_message(conversation_id, "user", payload.message)
 
-    # পুরো history দিয়ে একটা কনটেক্সট-সহ প্রম্পট বানানো (সরল approach — শুধু আগের মেসেজগুলো জোড়া দেওয়া)
+    # পুরো history দিয়ে একটা কনটেক্সট-সহ প্রম্পট বানানো
     context_lines = [f"{m['role']}: {m['content']}" for m in history]
     context_lines.append(f"user: {payload.message}")
     full_context = "\n".join(context_lines)
 
+    # Qdrant Semantic Memory থেকে টপ-কে রিট্রিভাল ও সিস্টেম প্রম্পট তৈরি
+    relevant_memories = retrieve_relevant_memories(payload.message, top_k=3)
+    system_prompt = build_rag_system_prompt(relevant_memories)
+
     try:
-        result = send_message(full_context)
+        result = send_message(full_context, system_prompt=system_prompt)
     except RuntimeError as e:
         logger.error("chat_test_failed", error=str(e))
         raise HTTPException(status_code=503, detail="AI service temporarily unavailable")
@@ -94,6 +114,7 @@ def test_chat(payload: ChatTestRequest):
         "conversation_id": conversation_id,
         "reply": result["reply"],
         "provider_used": result["provider_used"],
+        "retrieved_memories": relevant_memories,
     }
 
 
@@ -136,8 +157,12 @@ def send_conversation_message(conversation_id: str, payload: SendMessageRequest,
     context_lines.append(f"user: {payload.message}")
     full_context = "\n".join(context_lines)
 
+    # Qdrant Semantic Memory থেকে প্রাসঙ্গিক মেমোরি রিট্রিভ করা ও প্রম্পট ইনজেকশন
+    relevant_memories = retrieve_relevant_memories(payload.message, top_k=3)
+    system_prompt = build_rag_system_prompt(relevant_memories)
+
     try:
-        result = send_message(full_context)
+        result = send_message(full_context, system_prompt=system_prompt)
     except RuntimeError as e:
         logger.error("conversation_message_failed", conversation_id=conversation_id, error=str(e))
         raise HTTPException(status_code=503, detail="AI service temporarily unavailable")
@@ -156,11 +181,17 @@ def send_conversation_message(conversation_id: str, payload: SendMessageRequest,
     db.add(assistant_msg)
     db.commit()
 
-    logger.info("conversation_message_success", conversation_id=conversation_id, provider=result["provider_used"])
+    logger.info(
+        "conversation_message_success",
+        conversation_id=conversation_id,
+        provider=result["provider_used"],
+        retrieved_memories_count=len(relevant_memories),
+    )
     return {
         "conversation_id": conversation_id,
         "reply": result["reply"],
         "provider_used": result["provider_used"],
+        "retrieved_memories": relevant_memories,
     }
 
 

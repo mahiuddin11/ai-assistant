@@ -323,7 +323,33 @@ The manual-deploy portion of this criterion is now demonstrated (Helm deploy to 
 - Integration test script `test_semantic_memory.py`
 
 ### Verified
-- Dual-storage pipeline verified: facts successfully saved to both Qdrant and PostgreSQL
-- Semantic vector search tested: querying "What does the user like to code in?" successfully matched and retrieved "The user's favorite programming language is Python."
+- Dual-storage pipeline verified: facts successfully saved to both Qdrant (2 points) and PostgreSQL (2 rows)
+- Semantic vector search tested: querying "What does the user like to code in?" successfully retrieved 2 distinct memories (`"The user's favorite programming language is Python."` and `'The user is building an AI assistant platform.'`) with zero duplicate accumulation
+- Clean state verified: Qdrant points count = 2, PostgreSQL `memory_semantic` count = 2
 
+### Added (Task 26 - Basic RAG Logic & Prompt Injection)
+- Integrated `retrieve_relevant_memories` into `services/conversation-service/main.py`
+- Implemented `build_rag_system_prompt` helper function that dynamically constructs personalized background context from Qdrant vector retrieval
+- Updated `/v1/conversations/{conversation_id}/messages` and `/v1/test/chat` endpoints to inject semantic memory facts into LLM prompt
+- Created automated integration test suite `test_rag.py`
+
+### Verified
+- Automated test `test_rag.py` passed across fresh conversations:
+  - Query 1: *"What is my favorite programming language?"* -> Recalled `"The user's favorite programming language is Python."` -> LLM replied: *"Your favorite programming language is Python!"*
+  - Query 2: *"What kind of platform am I building?"* -> Recalled `"The user is building an AI assistant platform."` -> LLM replied: *"You are building an **AI assistant platform**!"*
+- Group C (Semantic Memory, Tasks 24–26) is now **100% COMPLETE** ✅
+
+### Added (Task 27 - Tool SDK v1 Manifest-based Interface Design)
+- Created shared package `packages/tool-sdk/`
+- Implemented `ToolManifest`, `ToolResult`, and abstract base class `BaseTool` in `packages/tool-sdk/tool_sdk.py`
+  - Manifest includes `name`, `description`, and JSON Schema-compatible `input_schema` for LLM tool/function calling
+  - Structured predictable `ToolResult` return type (`success`, `output`, `error`)
+- Implemented `ToolRegistry` in `packages/tool-sdk/tool_registry.py` for dynamic tool discovery, retrieval, and manifest listing
+- Added comprehensive unit/smoke test `packages/tool-sdk/test_tool_sdk.py` with `DummyEchoTool`
+
+### Verified
+- Executed `test_tool_sdk.py`:
+  - Registered manifest successfully dumped and listed: `[{'name': 'echo', 'description': '...', 'input_schema': {...}}]`
+  - Tool execution successfully invoked and verified: `ToolResult(success=True, output='Echo: Hello Tool SDK', error=None)`
+- Task 27 is now **100% COMPLETE** ✅
 
