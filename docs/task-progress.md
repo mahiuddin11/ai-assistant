@@ -1,0 +1,1017 @@
+# AI Assistant Foundation — Tasks 4, 5 & 6
+
+## Overview
+
+This document records the implementation and verification of Foundation Phase Tasks 4, 5, and 6 for the `ai_assistant` project.
+
+Project root:
+
+```text
+C:\laragon\www\ai_assistant
+```
+
+Completed tasks:
+
+- **Task 4:** NATS Event Bus — Local Setup
+- **Task 5:** NATS Publish/Subscribe Smoke Test
+- **Task 6:** Prometheus Metrics Endpoint for Hello World Service
+
+---
+
+# Task 4 — NATS Event Bus
+
+## Objective
+
+Set up a local NATS server to act as the event bus for communication between services.
+
+NATS provides lightweight, asynchronous communication between different services without tightly coupling them together.
+
+A simplified architecture:
+
+```text
+Service A
+    |
+    | publish: task.created
+    v
+NATS Event Bus
+    |
+    +------> AI Agent
+    |
+    +------> Notification Service
+    |
+    +------> Logging / Analytics
+```
+
+For the AI Assistant platform, this allows different services to communicate through events.
+
+---
+
+## Docker Setup
+
+NATS was started locally using Docker:
+
+```powershell
+docker run --name ai-assistant-nats -p 4222:4222 -p 8222:8222 -d nats:latest
+```
+
+### Container
+
+Container name:
+
+```text
+ai-assistant-nats
+```
+
+Image:
+
+```text
+nats:latest
+```
+
+### Ports
+
+| Port | Purpose |
+|---|---|
+| `4222` | NATS client connections |
+| `8222` | NATS monitoring |
+
+---
+
+## Verification
+
+Running containers were checked using:
+
+```powershell
+docker ps
+```
+
+The NATS container appeared as:
+
+```text
+ai-assistant-nats
+```
+
+NATS logs were checked using:
+
+```powershell
+docker logs ai-assistant-nats
+```
+
+The logs confirmed:
+
+```text
+Server is ready
+```
+
+This confirms that the NATS server successfully started and is ready to accept client connections.
+
+---
+
+## NATS Architecture
+
+The current local setup is:
+
+```text
+Python Services
+      |
+      | NATS client
+      v
++-------------------+
+|   NATS Server     |
+|                   |
+| Port: 4222        |
+| Monitor: 8222     |
++-------------------+
+```
+
+---
+
+## Why NATS Is Used
+
+NATS will act as the event bus for the AI Assistant platform.
+
+For example, when a task is created:
+
+```text
+User
+ |
+ v
+API Service
+ |
+ | task.created
+ v
+NATS
+ |
+ +----> AI Agent
+ |
+ +----> Notification
+ |
+ +----> Analytics
+```
+
+The publishing service does not need to know which services are listening to the event.
+
+This provides:
+
+- Loose coupling
+- Asynchronous communication
+- Service scalability
+- Event-driven architecture
+- Easier integration between Python and other services
+
+---
+
+## Task 4 Status
+
+**COMPLETED**
+
+NATS is running successfully in Docker and is available locally.
+
+---
+
+# Task 5 — NATS Publish/Subscribe Smoke Test
+
+## Objective
+
+Verify that the Python application can successfully communicate with the NATS server.
+
+The smoke test verifies four things:
+
+1. Connect to NATS
+2. Subscribe to a subject
+3. Publish a message
+4. Receive the published message
+
+---
+
+## Python Environment
+
+A Python virtual environment was created under:
+
+```text
+scripts\venv
+```
+
+The NATS Python client was installed using:
+
+```powershell
+pip install nats-py
+```
+
+Installed version:
+
+```text
+nats-py 2.15.0
+```
+
+---
+
+## Test Subject
+
+The smoke test used the following NATS subject:
+
+```text
+foundation.test
+```
+
+---
+
+## Test Script
+
+The smoke test script was executed from the `scripts` directory.
+
+Command:
+
+```powershell
+python test_event_bus.py
+```
+
+---
+
+## Successful Test Output
+
+The test produced:
+
+```text
+✅ Connected to NATS server
+👂 Subscribed to 'foundation.test'
+📤 Published: Hello from AI Assistant Foundation phase!
+📩 Received on 'foundation.test': Hello from AI Assistant Foundation phase!
+
+✅ SMOKE TEST PASSED — publish/subscribe working correctly
+```
+
+---
+
+## What the Test Proves
+
+The successful result confirms that the Python application can:
+
+```text
+Python Application
+        |
+        | Connect
+        v
+      NATS
+        |
+        | Subscribe
+        v
+ foundation.test
+        ^
+        |
+        | Publish
+        |
+Python Publisher
+```
+
+The complete publish/subscribe communication path is working correctly.
+
+---
+
+## Event Flow
+
+The actual test flow was:
+
+```text
+1. Python connects to NATS
+          |
+          v
+2. Subscriber subscribes to:
+   foundation.test
+          |
+          v
+3. Publisher sends:
+   "Hello from AI Assistant Foundation phase!"
+          |
+          v
+4. NATS routes the message
+          |
+          v
+5. Subscriber receives the message
+```
+
+---
+
+## Why This Smoke Test Is Important
+
+This is a foundation-level test.
+
+Before building more complex event-driven services, we need to prove that the event bus itself works.
+
+Once this basic communication works, the same mechanism can later be used for events such as:
+
+```text
+task.created
+task.updated
+task.completed
+user.created
+agent.started
+agent.completed
+notification.send
+```
+
+---
+
+## Task 5 Status
+
+**COMPLETED**
+
+NATS Python publish/subscribe communication was successfully verified.
+
+---
+
+# Task 6 — Prometheus Metrics Endpoint
+
+## Objective
+
+Add Prometheus metrics support to the FastAPI Hello World service.
+
+The purpose is to allow the service to expose operational metrics that can later be collected by Prometheus.
+
+The target endpoint is:
+
+```text
+/metrics
+```
+
+Local URL:
+
+```text
+http://127.0.0.1:8000/metrics
+```
+
+---
+
+# Hello World Service
+
+Service location:
+
+```text
+services\hello-world
+```
+
+Main application:
+
+```text
+main.py
+```
+
+Current project files:
+
+```text
+services/
+└── hello-world/
+    ├── venv/
+    ├── __pycache__/
+    ├── Dockerfile
+    ├── main.py
+    ├── README.md
+    └── requirements.txt
+```
+
+---
+
+## Existing Endpoints
+
+Before adding Prometheus instrumentation, the service provided:
+
+```text
+/
+ /healthz
+ /readyz
+```
+
+The root endpoint returns:
+
+```json
+{
+  "message": "AI Assistant Platform - Foundation service is running"
+}
+```
+
+---
+
+# Prometheus Instrumentation
+
+The following package was added:
+
+```text
+prometheus-fastapi-instrumentator
+```
+
+---
+
+## Dependency Compatibility Issue
+
+Initially, version `8.1.0` was installed.
+
+However, version `8.1.0` required:
+
+```text
+Starlette >=1.0.0,<2.0.0
+```
+
+while the existing FastAPI version was:
+
+```text
+FastAPI 0.115.0
+```
+
+which requires:
+
+```text
+Starlette >=0.37.2,<0.39.0
+```
+
+This created a dependency conflict.
+
+The conflicting version was removed and a compatible version was installed:
+
+```text
+prometheus-fastapi-instrumentator 7.1.0
+```
+
+The final environment contains:
+
+```text
+FastAPI                         0.115.0
+Starlette                       0.38.6
+prometheus-fastapi-instrumentator 7.1.0
+prometheus-client               0.26.0
+```
+
+---
+
+## Dependency Verification
+
+The environment was checked using:
+
+```powershell
+python -m pip check
+```
+
+The final result was:
+
+```text
+No broken requirements found.
+```
+
+This confirms that the installed packages have compatible dependencies.
+
+---
+
+# FastAPI Configuration
+
+The following import was added to `main.py`:
+
+```python
+from prometheus_fastapi_instrumentator import Instrumentator
+```
+
+Prometheus instrumentation was added after the FastAPI application was created:
+
+```python
+Instrumentator().instrument(app).expose(app)
+```
+
+The relevant application structure is:
+
+```python
+from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
+
+app = FastAPI(title="Hello World Service")
+
+Instrumentator().instrument(app).expose(app)
+
+
+@app.get("/")
+def root():
+    return {"message": "AI Assistant Platform - Foundation service is running"}
+
+
+@app.get("/healthz")
+def healthz():
+    return {"status": "ok"}
+
+
+@app.get("/readyz")
+def readyz():
+    return {"status": "ready"}
+```
+
+---
+
+# Running the Service
+
+The Hello World service was started locally using:
+
+```powershell
+python -m uvicorn main:app --reload
+```
+
+The service became available at:
+
+```text
+http://127.0.0.1:8000
+```
+
+Uvicorn confirmed:
+
+```text
+Uvicorn running on http://127.0.0.1:8000
+```
+
+---
+
+# Endpoint Verification
+
+## Root Endpoint
+
+The root endpoint was tested successfully.
+
+Request:
+
+```text
+http://127.0.0.1:8000/
+```
+
+Response:
+
+```json
+{
+  "message": "AI Assistant Platform - Foundation service is running"
+}
+```
+
+---
+
+# Prometheus Metrics Endpoint
+
+The main Task 6 test was:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/metrics
+```
+
+The endpoint returned Prometheus-formatted metrics successfully.
+
+---
+
+## Request Metrics
+
+The response included:
+
+```text
+# HELP http_requests_total Total number of requests by method, status and handler.
+# TYPE http_requests_total counter
+```
+
+Example:
+
+```text
+http_requests_total{handler="/metrics",method="GET",status="2xx"} 1.0
+http_requests_total{handler="/",method="GET",status="2xx"} 1.0
+```
+
+This proves that HTTP requests are being tracked.
+
+---
+
+## Request Duration Metrics
+
+The endpoint also returned:
+
+```text
+http_request_duration_seconds
+```
+
+and:
+
+```text
+http_request_duration_highr_seconds
+```
+
+These metrics allow request latency to be monitored.
+
+For example:
+
+```text
+http_request_duration_seconds_count
+http_request_duration_seconds_sum
+http_request_duration_seconds_bucket
+```
+
+These can later be used to calculate response-time statistics.
+
+---
+
+## Python Runtime Metrics
+
+The endpoint also exposed Python runtime metrics such as:
+
+```text
+python_gc_objects_collected_total
+python_gc_objects_uncollectable_total
+python_gc_collections_total
+python_info
+```
+
+These provide information about the Python runtime and garbage collection.
+
+---
+
+## Request and Response Size Metrics
+
+The service also exposed:
+
+```text
+http_request_size_bytes
+http_response_size_bytes
+```
+
+These metrics provide information about request and response payload sizes.
+
+---
+
+# What Task 6 Proves
+
+The Hello World service is successfully exposing Prometheus-compatible metrics.
+
+Current architecture:
+
+```text
+                 +----------------------+
+                 |  Hello World Service |
+                 |       FastAPI        |
+                 +----------+-----------+
+                            |
+                            |
+                       /metrics
+                            |
+                            v
+                 +----------------------+
+                 |      Prometheus      |
+                 |   Future component   |
+                 +----------------------+
+```
+
+Currently the endpoint can be accessed locally through:
+
+```text
+http://127.0.0.1:8000/metrics
+```
+
+When the service is later deployed through Docker/Compose, Prometheus can be configured to scrape the service's `/metrics` endpoint.
+
+---
+
+# Current Foundation Status
+
+| Task | Component | Status |
+|---|---|---|
+| 4 | NATS Event Bus | ✅ Completed |
+| 5 | NATS Publish/Subscribe Smoke Test | ✅ Completed |
+| 6 | Prometheus Metrics Endpoint | ✅ Completed |
+
+---
+
+# Current Local Infrastructure
+
+At this stage, the local foundation contains:
+
+```text
+AI Assistant Platform
+│
+├── PostgreSQL
+│   ├── Container: ai-assistant-postgres
+│   └── Port: 5432
+│
+├── NATS
+│   ├── Container: ai-assistant-nats
+│   ├── Client Port: 4222
+│   └── Monitoring Port: 8222
+│
+└── Hello World Service
+    ├── FastAPI
+    ├── Port: 8000
+    ├── /
+    ├── /healthz
+    ├── /readyz
+    └── /metrics
+```
+
+---
+
+# Verification Summary
+
+## NATS
+
+```text
+NATS Server
+    ↓
+Running successfully
+    ↓
+Python client connected
+    ↓
+Publish successful
+    ↓
+Subscribe successful
+    ↓
+Message received
+```
+
+## Prometheus
+
+```text
+FastAPI
+    ↓
+Prometheus Instrumentator
+    ↓
+/metrics
+    ↓
+Prometheus-compatible output
+    ↓
+Request + latency + runtime metrics available
+```
+
+---
+
+# Completed Foundation Milestone
+
+Tasks 4, 5, and 6 establish three important pieces of the AI Assistant foundation:
+
+### 1. Event Bus
+
+NATS provides asynchronous service-to-service communication.
+
+### 2. Event Communication
+
+The Python NATS smoke test confirms that services can publish and consume events.
+
+### 3. Observability
+
+Prometheus instrumentation provides metrics for monitoring the Hello World service.
+
+Together:
+
+```text
+                 AI Assistant Foundation
+                          |
+          +---------------+---------------+
+          |               |               |
+          v               v               v
+       NATS            FastAPI        Prometheus
+     Event Bus         Service         Metrics
+          |               |               |
+          |               |               |
+          +-------+-------+---------------+
+                  |
+                  v
+          Observable Services
+```
+
+---
+
+# Next Task
+
+The next planned foundation task is:
+
+## Task 7 — Structured Logging
+
+The goal of Task 7 is to introduce structured application logging.
+
+Expected improvements include:
+
+- Consistent log format
+- Log levels
+- Timestamps
+- Service identification
+- Request information
+- Error information
+- Easier log processing in production
+- Better integration with centralized logging systems
+
+The eventual architecture will move toward:
+
+```text
+Application
+    |
+    +----> Metrics ----> Prometheus
+    |
+    +----> Logs ------> Logging System
+    |
+    +----> Events ----> NATS
+```
+
+---
+
+# Final Status
+
+```text
+Task 4 — NATS Event Bus
+        ✅ COMPLETED
+
+Task 5 — NATS Publish/Subscribe Smoke Test
+        ✅ COMPLETED
+
+Task 6 — Prometheus Metrics Endpoint
+        ✅ COMPLETED
+
+Next:
+Task 7 — Structured Logging
+        ⏳ PENDING
+```
+
+
+# Task Progress Tracker
+
+এই ফাইলটা `docs/roadmap.md` ও `docs/requirements.md`-এর পরিপূরক — সেখানে ভার্সন/ফেজ-লেভেল সামারি আছে, এখানে দিনে-দিনে সম্পন্ন হওয়া ছোট টাস্কের বিস্তারিত ট্র্যাকিং রাখা হয়।
+
+---
+
+## Foundation Phase — Task Log
+
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 1 | PostgreSQL local setup via Docker | ✅ Done | 2026-08-31 | Fixed port-mapping + naming issues; see `docs/database-setup.md` |
+| 2 | Alembic migration tooling setup | ✅ Done | 2026-09-01 | `packages/db/` — connected, `alembic upgrade head` verified |
+| 3 | GitHub Actions folder + empty `ci.yml` | ✅ Done | 2026-08-31 | `.github/workflows/ci.yml` created |
+| 4 | NATS event bus via Docker | ✅ Done | 2026-09-02 | `ai-assistant-nats`, ports 4222/8222 |
+| 5 | Event bus publish/subscribe smoke test | ✅ Done | 2026-09-02 | `scripts/test_event_bus.py` — test passed |
+| 6 | Prometheus `/metrics` endpoint | ✅ Done | 2026-09-02 | `prometheus-fastapi-instrumentator` added to hello-world |
+| 7 | Structured JSON logging | ✅ Done | 2026-09-02 | `structlog` middleware logging method/path/status per request |
+| 8 | Dev/staging/prod config separation | ✅ Done | 2026-09-02 | `config/*.env.example` + `.env` loading via `python-dotenv` |
+| 9 | CI lint stage (`ruff`) | ✅ Done | 2026-09-02 | Added to `ci.yml`, verified green on GitHub Actions |
+| 10 | CI secret-scanning (`gitleaks`) | ✅ Done | 2026-09-02 | Added to `ci.yml`, verified green, no secrets detected |
+
+**Foundation task batch 1 (Tasks 1–10): ✅ Complete**
+
+---
+
+## Foundation Phase — Remaining Work
+
+| # | Task | Status | Notes |
+|---|---|---|---|
+| 11 | Vault-backed secrets config loader | ⬜ Not started | Currently using plain `.env` for dev; staging/prod use placeholders |
+| 12 | Helm chart skeleton for hello-world | ⬜ Not started | Needed for Kubernetes deployment |
+| 13 | Kubernetes dev cluster setup | ⬜ Not started | Likely via `minikube` or `kind` |
+| 14 | Rolling deploy verification on K8s | ⬜ Not started | Depends on 12 + 13 |
+| 15 | CI: automated test stage | ⬜ Not started | No business logic yet to unit test — revisit once v1.0 begins |
+
+---
+
+
+## How to Use This File
+
+- Every time a small task (not a full roadmap phase) is completed, add a row to the relevant phase's table above.
+- When all tasks for a phase are done and the phase's full release-gate (see `docs/roadmap.md`) passes, mark the phase complete in `docs/changelog.md` with a dated entry, and start a new section here for the next phase (e.g. `## v1.0 MVP — Task Log`).
+- This file is a working log, not a specification — the technical "what must be built" always lives in `docs/requirements.md`.
+
+
+| 11 | Vault local setup via Docker | ✅ Done | `ai-assistant-vault`, dev-mode, port 8200 |
+| 12 | Vault-based config loader (with .env fallback) | ✅ Done | `services/hello-world/config.py` — verified Vault-first, env-fallback behavior |
+| 13 | Helm chart skeleton for hello-world | ✅ Done | `infrastructure/helm/hello-world/` — `helm lint` passes |
+| 14 | Kubernetes dev cluster setup | ⬜ Not started | Likely via `minikube` or `kind` |
+| 15 | Rolling deploy verification on K8s | ⬜ Not started | Depends on 14 |
+
+
+---
+
+## Environment Notes
+
+- **Helm CLI installed via winget** (`winget install Helm.Helm`) — v4.2.4. If `helm` command is "not recognized" in a new terminal despite successful winget install, the fix that worked: manually verify the binary path via `Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages" -Recurse -Filter helm.exe`, then ensure it's in the **User PATH** via `[Environment]::SetEnvironmentVariable("Path", ..., "User")`, and open a **completely new** PowerShell window (not a new tab) to pick up the change.
+
+
+| 14 | Kubernetes dev cluster setup | ✅ Done | `kind` cluster `ai-assistant-dev` — node `Ready`, K8s v1.37.0 |
+| 15 | Rolling deploy verification on K8s | ⬜ Not started | Deploy hello-world via Helm to `kind` cluster |
+
+- **`kind` cluster name:** `ai-assistant-dev` — context: `kind-ai-assistant-dev`. Recreate anytime with `kind create cluster --name ai-assistant-dev`; delete with `kind delete cluster --name ai-assistant-dev`.
+
+| 15 | Deploy hello-world to `kind` cluster via Helm | ✅ Done | Pod `Running`, `/healthz` reachable via `kubectl port-forward` |
+
+**Foundation task batch 2 (Tasks 11–15): ✅ Complete**
+
+---
+
+## Foundation Phase — Final Status
+
+**All 15 tasks complete. Foundation phase: ✅ 100% COMPLETE.**
+
+Release-gate checklist (per `docs/roadmap.md`):
+- [x] All testing checklist items pass (`docs/requirements.md` → Foundation)
+- [x] All security checklist items pass (no hardcoded secrets, Vault-based config, gitleaks CI gate)
+- [x] Completion criteria demonstrated (hello-world deployed to K8s via Helm, healthz reachable)
+- [x] No regression (N/A — first phase)
+
+**Next phase: v1.0 MVP (Conversational Core)** — see `docs/development-plan.md` for phase prompt / task breakdown.
+
+
+---
+
+## v1.0 MVP — Task Log
+
+### গ্রুপ A — Auth & Identity Service (টাস্ক ১৬-১৯)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 16 | Scaffold `auth-service` + extract shared `config_loader` package | ✅ Done | 2026-09-10 | `packages/config-loader/`, `services/auth-service/main.py` — runs on port 8001 |
+| 17 | Create `users`, `tenants`, `sessions` tables (Alembic) | ✅ Done | 2026-09-10 | Migration `23f89786890d`; `pgcrypto` extension enabled for UUID PKs |
+| 18 | Password hashing + `POST /v1/auth/login` | ✅ Done | 2026-09-11 | `database.py`, `models.py`, `auth.py` added; bcrypt version pinned to 4.0.1; login tested successfully via `/docs` |
+| 19 | JWT issuance + `POST /v1/auth/refresh` | ✅ Done | 2026-09-11 | Access token (15min) + opaque refresh token (7day, bcrypt-hashed in `sessions`); rotation + reuse-rejection verified |
+
+### গ্রুপ B — Conversational Agent Service (টাস্ক ২০-২৩)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 20 | Scaffold `conversation-service` | ✅ Done | 2026-09-12 | `services/conversation-service/main.py` — runs on port 8002, uses shared `config_loader` |
+| 21 | Multi-provider LLM integration (Gemini → Claude → OpenAI → Grok) | ✅ Done | 2026-09-12 | `llm_client.py` — registry pattern, graceful skip on missing keys; `/v1/test/chat` verified with Gemini |
+| 22 | Redis working memory | ✅ Done | 2026-09-12 | `working_memory.py` — Redis 7 session context (1hr TTL, 20 max msgs FIFO); multi-turn context retention verified |
+| 23 | Conversation persistence (PostgreSQL) + full REST endpoints | ✅ Done | 2026-09-20 | End-to-end multi-turn memory test passed; Redis (working memory) + PostgreSQL (persistent history) both verified |
+
+### গ্রুপ C — Semantic Memory (টাস্ক ২৪-২৬)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 24 | Qdrant Docker setup & connection verification | ✅ Done | 2026-09-20 | `ai-assistant-qdrant`, ports 6333/6334; connection verified via `qdrant-client` |
+| 25 | `memory_semantic` table (Postgres) + `semantic_memory` Qdrant collection | ✅ Done | 2026-09-23 | Postgres table + Qdrant collection (768-dim, Cosine); embeddings & semantic retrieval verified (2 distinct memories, 0 duplicates) |
+| 26 | Basic RAG logic (retrieve top-k facts & prompt injection) | ✅ Done | 2026-09-23 | Top-k semantic memory recall injected into LLM prompt; personalized recall across fresh conversations verified |
+
+### গ্রুপ D — Web Search Tool (টাস্ক ২৭-২৮)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 27 | Tool SDK v1 (manifest-based tool interface) | ✅ Done | 2026-09-24 | Shared Tool SDK created in `packages/tool-sdk` with `ToolManifest`, `ToolResult`, `BaseTool`, `ToolRegistry` & test suite verified |
+| 28 | Web Search Tool implementation (with API-down fallback) | ⬜ Not started | | Web search agent tool integration |
+
+### গ্রুপ E — Permission Engine (টাস্ক ২৯-৩০)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 29 | `permissions` & `permission_audit_log` tables (Alembic) + Grant/Revoke APIs | ⬜ Not started | | Append-only audit log & coarse-grained permissions |
+| 30 | Coarse-grained allow/deny check before tool execution | ⬜ Not started | | Permission gate before executing tools |
+
+### গ্রুপ F — Task Management Engine (টাস্ক ৩১-৩২)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 31 | `tasks` table + state machine (queued → running → completed/failed) | ⬜ Not started | | Task lifecycle management |
+| 32 | `GET /v1/tasks/{id}` endpoint + NATS events (`task.created/updated/completed`) | ⬜ Not started | | Async event publishing via NATS |
+
+### গ্রুপ G — Minimal Web UI + টেস্টিং/সিকিউরিটি (টাস্ক ৩৩-৩৫)
+| # | Task | Status | Date | Notes |
+|---|---|---|---|---|
+| 33 | Minimal Web UI — Login page + Chat window (Desktop-first) | ⬜ Not started | | Frontend for user interaction |
+| 34 | Permission-grant confirmation modal + Settings page | ⬜ Not started | | Interactive permission confirmation UI |
+| 35 | v1.0 Release Gate Verification (Unit test ≥70%, E2E test, Load test, Security scan) | ⬜ Not started | | Final release verification |
+
+
+
+### Vault Secret Reseeding Maintenance — Completed
+- **Status:** ✅ Completed
+- Added `scripts/reseed-vault.ps1`.
+- Script automatically loads local secrets from `.env.vault.local`.
+- Script reseeds Conversation Service secrets into:
+  - `secret/conversation-service`
+- Configured secrets:
+  - `DATABASE_URL`
+  - `GEMINI_API_KEY`
+  - `ANTHROPIC_API_KEY`
+  - `REDIS_URL`
+  - `QDRANT_URL`
+- `.env.vault.local` is protected by the existing `.env.*` `.gitignore` rule.
+- Successfully tested the reseeding script against the development Vault.
+- Changes committed and pushed to the `main` branch.
+## script run commend
+.\scripts\reseed-vault.ps1
+
+---
+
+# Task 27 — Tool SDK v1 (Manifest-based Interface Design)
+
+## Overview
+Created a shared, manifest-based Tool SDK package in `packages/tool-sdk/` providing an extensible abstraction for AI Agent tools (Web Search, File Operations, Shell Commands, etc.).
+
+## Components Created
+- **`packages/tool-sdk/tool_sdk.py`**:
+  - `ToolManifest`: Schema definition (`name`, `description`, JSON Schema `input_schema` compatible with LLM function calling).
+  - `ToolResult`: Standardized result wrapper (`success`, `output`, `error`).
+  - `BaseTool`: Abstract base class enforcing uniform `manifest` property and `execute(**kwargs)` interface.
+- **`packages/tool-sdk/tool_registry.py`**:
+  - `ToolRegistry`: In-memory dynamic tool registry (`register`, `get`, `list_manifests`).
+- **`packages/tool-sdk/test_tool_sdk.py`**:
+  - Smoke & integration verification using `DummyEchoTool`.
+
+## Verification
+- Test run command:
+  ```powershell
+  cd packages\tool-sdk
+  python test_tool_sdk.py
+  ```
+- Output:
+  ```text
+  Registered tools: [{'name': 'echo', 'description': 'Echoes back whatever text is given (for testing the Tool SDK).', 'input_schema': {'type': 'object', 'properties': {'text': {'type': 'string'}}}}]
+  Execution result: success=True output='Echo: Hello Tool SDK' error=None
+  ```
+- **Status:** ✅ 100% COMPLETED (2026-09-24)
+
+
+| 27 | Tool SDK v1 (manifest-based interface) | ✅ Done | 2026-09-25 | `packages/tool-sdk/` — `BaseTool`/`ToolManifest`/`ToolResult`/`ToolRegistry` |
+| 28 | Web Search Tool (dual-provider: Tavily + Serper.dev fallback) | ✅ Done | 2026-09-25 | Fallback verified (Tavily failure → Serper success, reproduced multiple times); dual-failure edge case has an open investigation — see changelog |
+
+**Group D (Tool SDK + Web Search, Tasks 27–28): ✅ Complete** (with one open known-issue noted for later hardening)
+
