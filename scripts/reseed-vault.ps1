@@ -32,6 +32,16 @@ if (-not $env:ANTHROPIC_API_KEY) {
     exit 1
 }
 
+if (-not $env:TAVILY_API_KEY) {
+    Write-Host "TAVILY_API_KEY is missing from .env.vault.local"
+    exit 1
+}
+
+if (-not $env:SERPER_API_KEY) {
+    Write-Host "SERPER_API_KEY is missing from .env.vault.local"
+    exit 1
+}
+
 $DatabaseUrl = "postgresql+psycopg://root:admin123@localhost:5432/ai_assistant"
 $RedisUrl = "redis://localhost:6379/0"
 $QdrantUrl = "http://localhost:6333"
@@ -42,6 +52,8 @@ docker exec -e "VAULT_ADDR=$VaultAddr" -e "VAULT_TOKEN=$VaultToken" $VaultContai
     "GEMINI_API_KEY=$env:GEMINI_API_KEY" `
     "ANTHROPIC_API_KEY=$env:ANTHROPIC_API_KEY" `
     "REDIS_URL=$RedisUrl" `
-    "QDRANT_URL=$QdrantUrl"
+    "QDRANT_URL=$QdrantUrl" `
+    "TAVILY_API_KEY=$env:TAVILY_API_KEY" `
+    "SERPER_API_KEY=$env:SERPER_API_KEY"
 
 Write-Host "Vault secrets reseeded successfully."
