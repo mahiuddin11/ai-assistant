@@ -1,7 +1,7 @@
 import structlog
 from sqlalchemy.orm import Session
 from models import Task
-# from event_publisher import publish_task_event
+from event_publisher import publish_task_event
 
 logger = structlog.get_logger()
 
@@ -19,7 +19,7 @@ def create_task(db: Session, task_type: str, user_id: str | None = None, convers
     db.commit()
     db.refresh(task)
     logger.info("task_created", task_id=str(task.id), task_type=task_type)
-    # publish_task_event("created", str(task.id), task.status)
+    publish_task_event("created", str(task.id), task.status)
     return task
 
 
@@ -41,7 +41,7 @@ def transition_task(db: Session, task_id: str, new_status: str, result: str | No
     db.refresh(task)
     logger.info("task_transitioned", task_id=str(task.id), new_status=new_status)
 
-    # event_type = "completed" if new_status in ("completed", "failed") else "updated"
-    # publish_task_event(event_type, str(task.id), task.status)
+    event_type = "completed" if new_status in ("completed", "failed") else "updated"
+    publish_task_event(event_type, str(task.id), task.status)
 
     return task

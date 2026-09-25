@@ -12,6 +12,14 @@ class Conversation(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Message(Base):
+    __tablename__ = "messages"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id"), nullable=False)
+    role = Column(String(20), nullable=False)
+    content = Column(Text, nullable=False)
+    provider_used = Column(String(50), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class MemorySemantic(Base):
@@ -22,6 +30,7 @@ class MemorySemantic(Base):
     content = Column(Text, nullable=False)
     qdrant_point_id = Column(String(100), nullable=False, unique=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 
 class Task(Base):
     __tablename__ = "tasks"

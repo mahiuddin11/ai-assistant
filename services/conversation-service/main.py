@@ -11,6 +11,7 @@ from database import get_db
 from models import Conversation, Message
 from permission_client import is_tool_permission_granted
 from web_search_tool import WebSearchTool
+from models import Task
 
 web_search_tool = WebSearchTool()
 
@@ -249,14 +250,18 @@ def call_tool(payload: ToolCallRequest):
 
     return {"tool_name": payload.tool_name, "output": result.output}
 
-class Task(Base):
-    __tablename__ = "tasks"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), nullable=True)
-    conversation_id = Column(UUID(as_uuid=True), nullable=True)
-    task_type = Column(String(50), nullable=False)
-    status = Column(String(20), nullable=False, default="queued")
-    result = Column(Text, nullable=True)
-    error = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+@app.get("/v1/tasks/{task_id}")
+def get_task(task_id: str, db: Session = Depends(get_db)):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    return {
+        "task_id": str(task.id),
+        "task_type": task.task_type,
+        "status": task.status,
+        "result": task.result,
+        "error": task.error,
+        "created_at": task.created_at.isoformat(),
+        "updated_at": task.updated_at.isoformat(),
+    }
