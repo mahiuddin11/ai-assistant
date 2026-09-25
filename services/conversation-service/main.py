@@ -9,6 +9,11 @@ from llm_client import send_message
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Conversation, Message
+from permission_client import is_tool_permission_granted
+from web_search_tool import WebSearchTool
+
+web_search_tool = WebSearchTool()
+
 
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
@@ -220,3 +225,38 @@ def get_conversation_history(conversation_id: str, db: Session = Depends(get_db)
             for m in messages
         ],
     }
+
+class ToolCallRequest(BaseModel):
+    user_id: str
+    tool_name: str
+    query: str
+
+
+
+@app.post("/v1/tools/call")
+def call_tool(payload: ToolCallRequest):
+    if not is_tool_permission_granted(payload.user_id, payload.tool_name):
+        logger.warning("tool_call_denied", user_id=payload.user_id, tool_name=payload.tool_name)
+        raise HTTPException(status_code=403, detail=f"Permission denied for tool: {payload.tool_name}")
+
+    if payload.tool_name != "web_search":
+        raise HTTPException(status_code=404, detail=f"Unknown tool: {payload.tool_name}")
+
+    result = web_search_tool.execute(query=payload.query)
+
+    if not result.success:
+        raise HTTPException(status_code=503, detail=result.error)
+
+    return {"tool_name": payload.tool_name, "output": result.output}
+
+class Task(Base):
+    __tablename__ = "tasks"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), nullable=True)
+    conversation_id = Column(UUID(as_uuid=True), nullable=True)
+    task_type = Column(String(50), nullable=False)
+    status = Column(String(20), nullable=False, default="queued")
+    result = Column(Text, nullable=True)
+    error = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
