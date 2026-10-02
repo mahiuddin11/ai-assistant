@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>AI Assistant — Log In</title>
+
     <style>
         :root {
             --bg: #0f1115;
@@ -15,7 +17,6 @@
             --primary: #4f8cff;
             --primary-hover: #3d76e0;
             --error: #ff6b6b;
-            --success: #4ade80;
         }
 
         * {
@@ -26,9 +27,11 @@
             font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
             background: radial-gradient(circle at top, #161a22, var(--bg));
             color: var(--text);
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             min-height: 100vh;
             margin: 0;
             padding: 1rem;
@@ -38,8 +41,10 @@
             background: var(--card);
             padding: 2.5rem 2rem;
             border-radius: 16px;
+
             width: 100%;
             max-width: 360px;
+
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
             border: 1px solid var(--border);
         }
@@ -47,12 +52,18 @@
         .logo {
             width: 44px;
             height: 44px;
-            background: linear-gradient(135deg, var(--primary), #7c3aed);
+
+            background: linear-gradient(135deg,
+                    var(--primary),
+                    #7c3aed);
+
             border-radius: 12px;
             margin: 0 auto 1.2rem;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-weight: 700;
             font-size: 1.2rem;
         }
@@ -87,12 +98,17 @@
 
         input {
             width: 100%;
+
             padding: 0.7rem 0.8rem;
+
             border-radius: 8px;
             border: 1px solid var(--border);
+
             background: #0f1115;
             color: var(--text);
+
             font-size: 0.9rem;
+
             transition: border-color 0.15s;
         }
 
@@ -103,27 +119,34 @@
 
         .toggle-pw {
             position: absolute;
+
             right: 0.7rem;
             top: 50%;
+
             transform: translateY(-50%);
+
             background: none;
             border: none;
+
             color: var(--text-dim);
+
             cursor: pointer;
+
             font-size: 0.75rem;
             padding: 0;
-            width: auto;
         }
 
         .row-between {
             display: flex;
             justify-content: flex-end;
+
             margin-bottom: 1.2rem;
         }
 
         .row-between a {
             font-size: 0.8rem;
             color: var(--primary);
+
             text-decoration: none;
         }
 
@@ -133,18 +156,26 @@
 
         button[type="submit"] {
             width: 100%;
+
             padding: 0.75rem;
+
             border: none;
             border-radius: 8px;
+
             background: var(--primary);
             color: white;
+
             font-weight: 600;
             font-size: 0.9rem;
+
             cursor: pointer;
+
             transition: background 0.15s;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             gap: 0.5rem;
         }
 
@@ -160,10 +191,14 @@
         .spinner {
             width: 14px;
             height: 14px;
+
             border: 2px solid rgba(255, 255, 255, 0.4);
             border-top-color: white;
+
             border-radius: 50%;
+
             animation: spin 0.7s linear infinite;
+
             display: none;
         }
 
@@ -179,22 +214,31 @@
 
         .error {
             color: var(--error);
+
             font-size: 0.82rem;
+
             margin-top: 0.8rem;
+
             text-align: center;
+
             min-height: 1.1rem;
         }
 
         .footer-link {
             text-align: center;
+
             margin-top: 1.5rem;
+
             font-size: 0.85rem;
+
             color: var(--text-dim);
         }
 
         .footer-link a {
             color: var(--primary);
+
             text-decoration: none;
+
             font-weight: 600;
         }
 
@@ -205,100 +249,322 @@
 </head>
 
 <body>
-    <form class="card" id="loginForm" onsubmit="return false;">
+
+    <form class="card" id="loginForm">
+
         <div class="logo">AI</div>
-        <h1>Welcome back</h1>
-        <p class="subtitle">Log in to continue to AI Assistant</p>
 
+        <h1>Max AI Assistant</h1>
+
+        <!-- <p class="subtitle">
+            Log in to continue to AI Assistant
+        </p> -->
+
+        <!-- Email -->
         <div class="field">
-            <label for="email">Email</label>
+
+            <label for="email">
+                Email
+            </label>
+
             <input type="email" id="email" placeholder="you@example.com" required autocomplete="email" />
+
         </div>
 
+        <!-- Password -->
         <div class="field">
-            <label for="password">Password</label>
+
+            <label for="password">
+                Password
+            </label>
+
             <div class="input-wrap">
+
                 <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" />
-                <button type="button" class="toggle-pw" onclick="togglePassword()">Show</button>
+
+                <button type="button" class="toggle-pw" id="togglePasswordBtn">
+                    Show
+                </button>
+
             </div>
+
         </div>
 
+        <!-- Forgot password -->
         <div class="row-between">
-            <a href="forgot-password.html">Forgot password?</a>
+
+            <a href="forgot-password.html">
+                Forgot password?
+            </a>
+
         </div>
 
-        <button type="submit" id="loginBtn" onclick="login()">
+        <!-- Login button -->
+        <button type="submit" id="loginBtn">
+
             <span class="spinner" id="spinner"></span>
-            <span id="btnText">Log In</span>
+
+            <span id="btnText">
+                Log In
+            </span>
+
         </button>
 
+        <!-- Error -->
         <div class="error" id="error"></div>
 
+        <!-- Register -->
         <div class="footer-link">
-            Don't have an account? <a href="register.html">Sign up</a>
+
+            Don't have an account?
+
+            <a href="register.html">
+                Sign up
+            </a>
+
         </div>
+
     </form>
 
+
     <script>
-        const AUTH_SERVICE_URL = "http://localhost:8001";
 
-        function togglePassword() {
-            const pw = document.getElementById("password");
-            const btn = document.querySelector(".toggle-pw");
-            const isHidden = pw.type === "password";
-            pw.type = isHidden ? "text" : "password";
-            btn.textContent = isHidden ? "Hide" : "Show";
-        }
+        /*
+         * Auth Service
+         *
+         * If UI is opened from:
+         * http://localhost:5500
+         * then Auth Service becomes:
+         * http://localhost:8001
+         *
+         * If UI is opened from:
+         * http://127.0.0.1:5500
+         * then Auth Service becomes:
+         * http://127.0.0.1:8001
+         */
+        const AUTH_SERVICE_URL =
+            `${window.location.protocol}//${window.location.hostname}:8001`;
 
+
+        const loginForm =
+            document.getElementById("loginForm");
+
+        const loginBtn =
+            document.getElementById("loginBtn");
+
+        const spinner =
+            document.getElementById("spinner");
+
+        const btnText =
+            document.getElementById("btnText");
+
+        const errorEl =
+            document.getElementById("error");
+
+        const emailInput =
+            document.getElementById("email");
+
+        const passwordInput =
+            document.getElementById("password");
+
+        const togglePasswordBtn =
+            document.getElementById("togglePasswordBtn");
+
+
+        /*
+         * Toggle password visibility
+         */
+        togglePasswordBtn.addEventListener("click", () => {
+
+            const isPassword =
+                passwordInput.type === "password";
+
+            passwordInput.type =
+                isPassword ? "text" : "password";
+
+            togglePasswordBtn.textContent =
+                isPassword ? "Hide" : "Show";
+
+        });
+
+
+        /*
+         * Loading state
+         */
         function setLoading(isLoading) {
-            document.getElementById("loginBtn").disabled = isLoading;
-            document.getElementById("spinner").classList.toggle("active", isLoading);
-            document.getElementById("btnText").textContent = isLoading ? "Logging in..." : "Log In";
+
+            loginBtn.disabled = isLoading;
+
+            spinner.classList.toggle(
+                "active",
+                isLoading
+            );
+
+            btnText.textContent =
+                isLoading
+                    ? "Logging in..."
+                    : "Log In";
         }
 
-        async function login() {
-            const email = document.getElementById("email").value.trim();
-            const password = document.getElementById("password").value;
-            const errorEl = document.getElementById("error");
+
+        /*
+         * Login
+         */
+        loginForm.addEventListener("submit", async (event) => {
+
+            event.preventDefault();
+
             errorEl.textContent = "";
 
+            const email =
+                emailInput.value.trim();
+
+            const password =
+                passwordInput.value;
+
+
+            /*
+             * Validate fields
+             */
             if (!email || !password) {
-                errorEl.textContent = "Please fill in both fields.";
+
+                errorEl.textContent =
+                    "Please fill in both fields.";
+
                 return;
             }
 
+
             setLoading(true);
 
+
             try {
-                const res = await fetch(`${AUTH_SERVICE_URL}/v1/auth/login`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email, password }),
-                });
 
-                const data = await res.json();
+                const response =
+                    await fetch(
+                        `${AUTH_SERVICE_URL}/v1/auth/login`,
+                        {
+                            method: "POST",
 
-                if (!res.ok) {
-                    errorEl.textContent = data.detail || "Login failed. Check your credentials.";
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                email: email,
+                                password: password
+                            })
+                        }
+                    );
+
+
+                /*
+                 * Try to read JSON response
+                 */
+                let data = {};
+
+                try {
+                    data = await response.json();
+                } catch {
+                    data = {};
+                }
+
+
+                /*
+                 * Login failed
+                 */
+                if (!response.ok) {
+
+                    if (typeof data.detail === "string") {
+
+                        errorEl.textContent =
+                            data.detail;
+
+                    } else if (Array.isArray(data.detail)) {
+
+                        errorEl.textContent =
+                            data.detail[0]?.msg ||
+                            "Login failed.";
+
+                    } else {
+
+                        errorEl.textContent =
+                            "Login failed. Check your credentials.";
+
+                    }
+
                     setLoading(false);
+
                     return;
                 }
 
-                localStorage.setItem("access_token", data.access_token);
-                localStorage.setItem("refresh_token", data.refresh_token);
-                localStorage.setItem("user_id", data.user_id || "");
-                window.location.href = "chat.html";
 
-            } catch (e) {
-                errorEl.textContent = "Cannot reach the server. Is auth-service running?";
+                /*
+                 * Make sure access token exists
+                 */
+                if (!data.access_token) {
+
+                    errorEl.textContent =
+                        "Login succeeded, but no access token was returned.";
+
+                    setLoading(false);
+
+                    return;
+                }
+
+
+                /*
+                 * Store authentication data
+                 */
+                localStorage.setItem(
+                    "access_token",
+                    data.access_token
+                );
+
+                if (data.refresh_token) {
+
+                    localStorage.setItem(
+                        "refresh_token",
+                        data.refresh_token
+                    );
+
+                }
+
+                if (data.user_id) {
+
+                    localStorage.setItem(
+                        "user_id",
+                        data.user_id
+                    );
+
+                }
+
+
+                /*
+                 * Go to Chat
+                 */
+                window.location.href =
+                    "chat.html";
+
+            } catch (error) {
+
+                console.error(
+                    "Login request failed:",
+                    error
+                );
+
+                errorEl.textContent =
+                    "Cannot reach the server. Is auth-service running?";
+
                 setLoading(false);
-            }
-        }
 
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") login();
+            }
+
         });
+
     </script>
+
 </body>
 
 </html>

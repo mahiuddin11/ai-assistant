@@ -1067,7 +1067,7 @@
                             <use href="#samad-logo" />
                         </svg></div>
                     <div class="brand-text">
-                        <b>SAMAD</b>
+                        <b>Max AI Assistant</b>
                         <small><i></i>Online</small>
                     </div>
                 </div>
@@ -1334,7 +1334,8 @@
             if (role === "assistant") {
                 const tag = document.createElement("span");
                 tag.className = "provider-tag";
-                tag.textContent = document.querySelector(".brand-text b").textContent;
+                tag.textContent = "Max AI Assistant";
+                /* tag.textContent = provider || document.querySelector(".brand-text b").textContent; */
                 meta.appendChild(tag);
             }
             if (role === "assistant" && !isError) meta.appendChild(makeCopyButton(content));
@@ -1374,10 +1375,14 @@
             showTyping();
 
             try {
-                const res = await fetch(`${CONVERSATION_SERVICE_URL}/v1/conversations/${convId}/messages`, {
+                // ব্যাকএন্ডের সঠিক রাউট (/v1/test/chat) এবং বডি (conversation_id ও message) ব্যবহার করা হয়েছে
+                const res = await fetch(`${CONVERSATION_SERVICE_URL}/v1/test/chat`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message }),
+                    body: JSON.stringify({
+                        conversation_id: convId,
+                        message: message
+                    }),
                 });
 
                 const data = await res.json();
