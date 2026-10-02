@@ -23,3 +23,4 @@ print("Registered tools:", registry.list_manifests())
 
 result = registry.get("echo").execute(text="Hello Tool SDK")
 print("Execution result:", result)
+

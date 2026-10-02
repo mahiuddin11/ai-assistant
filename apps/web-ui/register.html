@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Assistant — Sign Up</title>
+    <style>
+        :root {
+            --bg: #0f1115;
+            --card: #1a1d24;
+            --border: #2a2d36;
+            --text: #e4e6eb;
+            --text-dim: #8b8f99;
+            --primary: #4f8cff;
+            --primary-hover: #3d76e0;
+            --error: #ff6b6b;
+            --success: #4ade80;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: radial-gradient(circle at top, #161a22, var(--bg));
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 2.5rem 2rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        .logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            border-radius: 12px;
+            margin: 0 auto 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            text-align: center;
+            margin: 0 0 0.3rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-bottom: 1.8rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 0.35rem;
+        }
+
+        .field {
+            margin-bottom: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.7rem 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #0f1115;
+            color: var(--text);
+            font-size: 0.9rem;
+            transition: border-color 0.15s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 0.3rem;
+        }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border);
+            margin-top: 0.4rem;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.2s, background 0.2s;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        button[type="submit"]:hover {
+            background: var(--primary-hover);
+        }
+
+        button[type="submit"]:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: var(--error);
+            font-size: 0.82rem;
+            margin-top: 0.8rem;
+            text-align: center;
+            min-height: 1.1rem;
+        }
+
+        .success-msg {
+            color: var(--success);
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 0.8rem;
+        }
+
+        .footer-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .footer-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <form class="card" id="registerForm" onsubmit="return false;">
+        <div class="logo">AI</div>
+        <h1>Create your account</h1>
+        <p class="subtitle">Start chatting with your AI assistant</p>
+
+        <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+
+        <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="At least 8 characters" required
+                autocomplete="new-password" oninput="checkStrength()" />
+            <div class="strength-bar">
+                <div class="strength-fill" id="strengthFill"></div>
+            </div>
+            <div class="hint" id="strengthText">Use 8+ characters with a mix of letters & numbers</div>
+        </div>
+
+        <div class="field">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="Re-enter your password" required
+                autocomplete="new-password" />
+        </div>
+
+        <button type="submit" id="registerBtn" onclick="register()">Create Account</button>
+
+        <div class="error" id="error"></div>
+        <div class="success-msg" id="success"></div>
+
+        <div class="footer-link">
+            Already have an account? <a href="index.html">Log in</a>
+        </div>
+    </form>
+
+    <script>
+        const AUTH_SERVICE_URL = "http://localhost:8001";
+
+        function checkStrength() {
+            const pw = document.getElementById("password").value;
+            const fill = document.getElementById("strengthFill");
+            const text = document.getElementById("strengthText");
+
+            let score = 0;
+            if (pw.length >= 8) score++;
+            if (/[A-Z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+            const levels = [
+                { width: "25%", color: "#ff6b6b", label: "Weak" },
+                { width: "50%", color: "#fbbf24", label: "Fair" },
+                { width: "75%", color: "#4ade80", label: "Good" },
+                { width: "100%", color: "#22c55e", label: "Strong" },
+            ];
+
+            const level = levels[Math.max(score - 1, 0)];
+            fill.style.width = pw ? level.width : "0%";
+            fill.style.background = level.color;
+            text.textContent = pw ? `Strength: ${level.label}` : "Use 8+ characters with a mix of letters & numbers";
+        }
+
+        async function register() {
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+            const errorEl = document.getElementById("error");
+            const successEl = document.getElementById("success");
+            errorEl.textContent = "";
+            successEl.textContent = "";
+
+            if (!email || !password || !confirmPassword) {
+                errorEl.textContent = "Please fill in all fields.";
+                return;
+            }
+            if (password.length < 8) {
+                errorEl.textContent = "Password must be at least 8 characters.";
+                return;
+            }
+            if (password !== confirmPassword) {
+                errorEl.textContent = "Passwords do not match.";
+                return;
+            }
+
+            const btn = document.getElementById("registerBtn");
+            btn.disabled = true;
+            btn.textContent = "Creating account...";
+
+            try {
+                const res = await fetch(`${AUTH_SERVICE_URL}/v1/auth/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    errorEl.textContent = data.detail || "Registration failed.";
+                    btn.disabled = false;
+                    btn.textContent = "Create Account";
+                    return;
+                }
+
+                successEl.textContent = "Account created! Redirecting to login...";
+                setTimeout(() => window.location.href = "index.html", 1500);
+
+            } catch (e) {
+                errorEl.textContent = "Cannot reach the server. Is auth-service running?";
+                btn.disabled = false;
+                btn.textContent = "Create Account";
+            }
+        }
+    </script>
+</body>
+
+</html>

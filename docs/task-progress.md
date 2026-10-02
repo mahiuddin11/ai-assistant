@@ -1015,3 +1015,14 @@ Created a shared, manifest-based Tool SDK package in `packages/tool-sdk/` provid
 
 **Group D (Tool SDK + Web Search, Tasks 27–28): ✅ Complete** (with one open known-issue noted for later hardening)
 
+| 29 | `permissions`/`permission_audit_log` tables + grant/revoke endpoints | ✅ Done | 2026-09-24 | Audit log confirmed recording grant/revoke with correct timestamps; re-revoke correctly returns 404 |
+| 30 | Tool-call permission check integration (service-to-service) | ⬜ Not started | | |
+
+| 31 | `tasks` table + state machine | ✅ Done | 2026-09-25 | Valid transitions confirmed; invalid transition correctly rejected. Event publishing deferred to task 32 |
+| 32 | NATS event publishing (task.created/updated/completed) + `GET /v1/tasks/{id}` | ⬜ Not started | | `event_publisher.py` needs to be created; commented-out calls in `task_manager.py` need to be re-enabled |
+
+
+| 32 | NATS event publishing + `GET /v1/tasks/{id}` | ✅ Done | 2026-09-25 | End-to-end publish→subscribe verified with matching task_id across independent processes |
+
+**Group F (Task Management Engine, Tasks 31–32): ✅ Complete**
+

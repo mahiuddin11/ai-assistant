@@ -2,9 +2,11 @@ import sys
 import os
 import structlog
 from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 from permissions import grant_permission, revoke_permission
+from permissions import is_permission_granted
 
 from database import get_db
 
@@ -40,6 +42,13 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
 
 app = FastAPI(title="Auth & Identity Service")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5500"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -100,6 +109,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
+        "user_id": str(user.id),
     }
 
 class RefreshRequest(BaseModel):
@@ -160,3 +170,8 @@ def revoke_permission_endpoint(payload: PermissionRequest, db: Session = Depends
     if not success:
         raise HTTPException(status_code=404, detail="No active permission found to revoke")
     return {"status": "revoked", "tool_name": payload.tool_name}
+
+@app.get("/v1/permissions/check")
+def check_permission_endpoint(user_id: str, tool_name: str, db: Session = Depends(get_db)):
+    allowed = is_permission_granted(db, user_id, tool_name)
+    return {"allowed": allowed}

@@ -353,3 +353,58 @@ The manual-deploy portion of this criterion is now demonstrated (Helm deploy to 
   - Tool execution successfully invoked and verified: `ToolResult(success=True, output='Echo: Hello Tool SDK', error=None)`
 - Task 27 is now **100% COMPLETE** ✅
 
+### Added (continued)
+- `packages/tool-sdk/` — shared Tool SDK v1 (`BaseTool`, `ToolManifest`, `ToolResult`, `ToolRegistry`) for a consistent tool interface across future tools/agents
+- `web_search_tool.py` in conversation-service — dual-provider web search: **Tavily (primary) → Serper.dev (fallback)**
+- `_search_tavily()` and `_search_serper()` helpers — each fails gracefully (returns `None`) rather than raising, allowing clean provider fallback
+- `SERPER_API_KEY` added to Vault (`secret/conversation-service` path) and to `scripts/reseed-vault.ps1`
+
+### Verified
+- Tool SDK manifest/registry pattern confirmed working via `WebSearchTool.manifest`
+- Web search succeeds via Tavily under normal conditions
+- **Fallback confirmed**: with an invalid Tavily key, the tool automatically falls back to Serper.dev and still returns `Success: True` with valid results — reproduced consistently across multiple runs
+- Failure handling confirmed graceful: invalid API keys produce a logged warning (`tavily_search_failed`, `serper_search_failed`) rather than a crash
+
+### Known Issue (under investigation)
+- During manual dual-failure testing (both Tavily and Serper keys intentionally set invalid), Serper still returned a successful result — suggesting either (a) the reseed script did not actually update the Serper key in Vault before the test ran, or (b) a caching issue in secret loading. Root cause not yet confirmed; to be revisited before this is marked fully hardened. Does not block v1.0 functionality, since the fallback chain works correctly under the tested (single-provider-failure) scenario.
+
+### Added (continued)
+- `permissions`, `permission_audit_log` tables created via Alembic migration (`e79517bb3a1f`)
+- `Permission`, `PermissionAuditLog` SQLAlchemy models added to auth-service
+- `permissions.py` — `grant_permission()`, `revoke_permission()`, `is_permission_granted()` with append-only audit logging on every action
+- `POST /v1/permissions/grant`, `POST /v1/permissions/revoke` endpoints in auth-service
+
+### Verified
+- Grant and revoke both succeed (200 OK) and are correctly recorded in `permission_audit_log` with accurate timestamps and action type
+- Re-revoking an already-revoked permission correctly returns 404 (no active permission found)
+
+### Fixed
+- Vault dev-mode data loss recurred for `secret/auth-service` (container restart clears in-memory secrets) — resolved via a new `scripts/reseed-vault-auth.ps1` script, following the same pattern as the conversation-service reseed script
+
+### Known Limitation (tracked for later)
+- Vault dev-mode secret loss has now occurred three times (hello-world, conversation-service, auth-service). A combined `reseed-vault-all.ps1` script covering every service is planned to reduce repeated manual recovery.
+
+### Added (continued)
+- `tasks` table created via Alembic migration
+- `Task` SQLAlchemy model added to conversation-service's `models.py`
+- `task_manager.py` — `create_task()`, `transition_task()` with an explicit state machine (`VALID_TRANSITIONS` dict preventing illegal status changes)
+
+### Verified
+- Task creation and valid transitions (`queued → running → completed`) work correctly
+- Invalid transition (`completed → running`) is correctly rejected with a `ValueError`
+
+### Fixed
+- Corrected a missing `Task` model in `models.py` that caused `ImportError: cannot import name 'create_task'`
+- Temporarily commented out `event_publisher` integration in `task_manager.py` (module not yet created) to unblock and verify the state machine independently — NATS event publishing to be added in task 32
+
+### Added (continued)
+- `event_publisher.py` in conversation-service — publishes `task.created`/`task.updated`/`task.completed` events to NATS, with graceful failure handling (publish errors are logged, never block the core task operation)
+- `GET /v1/tasks/{task_id}` endpoint — returns full task status, result, and error fields
+- `scripts/subscribe_task_events.py` — verification subscriber for `task.*` NATS subjects
+
+### Verified
+- End-to-end NATS event flow confirmed: task lifecycle events published by conversation-service are received by an independent subscriber process, with matching `task_id` and correct event ordering (created → updated → completed)
+- `GET /v1/tasks/{task_id}` returns 200 OK with correct task details
+
+### Fixed
+- Corrected `Message` model accidentally deleted from `models.py` during a manual edit, which caused `ImportError: cannot import name 'Message' from 'models'` on service startup

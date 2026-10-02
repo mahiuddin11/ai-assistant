@@ -5,6 +5,7 @@ import structlog
 import uuid
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from llm_client import send_message
 from sqlalchemy.orm import Session
 from database import get_db
@@ -38,6 +39,13 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
 
 app = FastAPI(title="Conversational Agent Service")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5500"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def build_rag_system_prompt(memories: list[str]) -> str:
     """Qdrant থেকে প্রাপ্ত প্রাসঙ্গিক মেমোরি দিয়ে LLM সিস্টেম প্রম্পট সমৃদ্ধ করে।"""

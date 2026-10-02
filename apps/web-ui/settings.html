@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Settings</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #0f1115;
+            color: #e4e6eb;
+            padding: 2rem;
+        }
+
+        a {
+            color: #4f8cff;
+        }
+
+        .section {
+            background: #1a1d24;
+            padding: 1.2rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background: #333;
+            color: #ccc;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="chat.html">← Back to Chat</a>
+    <h2>Settings</h2>
+
+    <div class="section">
+        <h3>Account</h3>
+        <p id="userInfo">Loading...</p>
+    </div>
+
+    <div class="section">
+        <h3>Session</h3>
+        <button onclick="logout()">Log Out</button>
+    </div>
+
+    <script>
+        document.getElementById("userInfo").textContent =
+            "User ID: " + (localStorage.getItem("user_id") || "unknown");
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+
+</html>
