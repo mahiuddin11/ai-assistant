@@ -9,3 +9,5 @@ sqlalchemy==2.0.36
 psycopg[binary]==3.2.3
 pydantic[email]==2.13.5
 python-jose[cryptography]==3.3.0
+pytest==8.3.3
+pytest-cov==6.0.0

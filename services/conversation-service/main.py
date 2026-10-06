@@ -4,7 +4,7 @@ import os
 import structlog
 import uuid
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, Request, Depends, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from llm_client import send_message
 from sqlalchemy.orm import Session
@@ -23,6 +23,7 @@ from working_memory import get_history, append_message
 from semantic_memory import retrieve_relevant_memories
 # pyrefly: ignore [missing-import]
 from config_loader import get_secret  # noqa: E402
+from llm_client import MOCK_LLM_RESPONSES
 
 structlog.configure(
     processors=[
@@ -73,6 +74,13 @@ async def log_requests(request: Request, call_next):
     )
     return response
 
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+    return response
+
 
 @app.get("/")
 def root():
@@ -112,7 +120,7 @@ def test_chat(payload: ChatTestRequest):
     full_context = "\n".join(context_lines)
 
     # Qdrant Semantic Memory থেকে টপ-কে রিট্রিভাল ও সিস্টেম প্রম্পট তৈরি
-    relevant_memories = retrieve_relevant_memories(payload.message, top_k=3)
+    relevant_memories = [] if MOCK_LLM_RESPONSES else retrieve_relevant_memories(payload.message, top_k=3)
     system_prompt = build_rag_system_prompt(relevant_memories)
 
     try:
@@ -148,7 +156,8 @@ class SendMessageRequest(BaseModel):
 
 
 @app.post("/v1/conversations/{conversation_id}/messages")
-def send_conversation_message(conversation_id: str, payload: SendMessageRequest, db: Session = Depends(get_db)):
+def send_conversation_message(conversation_id: str, payload: SendMessageRequest, response: Response, db: Session = Depends(get_db)):
+    
     conversation = db.query(Conversation).filter(Conversation.id == conversation_id).first()
     if conversation is None:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -172,7 +181,7 @@ def send_conversation_message(conversation_id: str, payload: SendMessageRequest,
     full_context = "\n".join(context_lines)
 
     # Qdrant Semantic Memory থেকে প্রাসঙ্গিক মেমোরি রিট্রিভ করা ও প্রম্পট ইনজেকশন
-    relevant_memories = retrieve_relevant_memories(payload.message, top_k=3)
+    relevant_memories = [] if MOCK_LLM_RESPONSES else retrieve_relevant_memories(payload.message, top_k=3)
     system_prompt = build_rag_system_prompt(relevant_memories)
 
     try:
@@ -201,6 +210,8 @@ def send_conversation_message(conversation_id: str, payload: SendMessageRequest,
         provider=result["provider_used"],
         retrieved_memories_count=len(relevant_memories),
     )
+
+    response.headers["Cache-Control"] = "no-store"
     return {
         "conversation_id": conversation_id,
         "reply": result["reply"],
@@ -210,7 +221,7 @@ def send_conversation_message(conversation_id: str, payload: SendMessageRequest,
 
 
 @app.get("/v1/conversations/{conversation_id}/history")
-def get_conversation_history(conversation_id: str, db: Session = Depends(get_db)):
+def get_conversation_history(conversation_id: str, response: Response, db: Session = Depends(get_db)):
     conversation = db.query(Conversation).filter(Conversation.id == conversation_id).first()
     if conversation is None:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -222,6 +233,7 @@ def get_conversation_history(conversation_id: str, db: Session = Depends(get_db)
         .all()
     )
 
+    response.headers["Cache-Control"] = "no-store"
     return {
         "conversation_id": conversation_id,
         "messages": [
@@ -259,11 +271,11 @@ def call_tool(payload: ToolCallRequest):
     return {"tool_name": payload.tool_name, "output": result.output}
 
 @app.get("/v1/tasks/{task_id}")
-def get_task(task_id: str, db: Session = Depends(get_db)):
+def get_task(task_id: str, response: Response, db: Session = Depends(get_db)):
     task = db.query(Task).filter(Task.id == task_id).first()
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
-
+    response.headers["Cache-Control"] = "no-store"
     return {
         "task_id": str(task.id),
         "task_type": task.task_type,

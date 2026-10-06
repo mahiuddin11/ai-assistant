@@ -1,7 +1,7 @@
 import sys
 import os
 import structlog
-from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi import FastAPI, Request, Depends, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
@@ -61,6 +61,13 @@ async def log_requests(request: Request, call_next):
     )
     return response
 
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Cross-Origin-Resource-Policy"] = "same-origin"
+    return response
+
 
 @app.get("/")
 def root():
@@ -86,7 +93,7 @@ class LoginRequest(BaseModel):
 
 
 @app.post("/v1/auth/login")
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
 
     if not user or not verify_password(payload.password, user.password_hash):
@@ -105,6 +112,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     db.commit()
 
     logger.info("login_success", user_id=str(user.id))
+    response.headers["Cache-Control"] = "no-store"
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -117,7 +125,7 @@ class RefreshRequest(BaseModel):
 
 
 @app.post("/v1/auth/refresh")
-def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
+def refresh(payload: RefreshRequest, response: Response, db: Session = Depends(get_db)):
     sessions = db.query(SessionModel).filter(
         SessionModel.expires_at > datetime.now(timezone.utc)
     ).all()
@@ -147,6 +155,7 @@ def refresh(payload: RefreshRequest, db: Session = Depends(get_db)):
     db.commit()
 
     logger.info("refresh_success", user_id=str(matched_session.user_id))
+    response.headers["Cache-Control"] = "no-store"
     return {
         "access_token": new_access_token,
         "refresh_token": new_refresh_token,

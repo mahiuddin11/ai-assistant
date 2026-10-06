@@ -11,13 +11,10 @@ from config_loader import get_secret  # noqa: E402
 
 logger = structlog.get_logger()
 
+MOCK_LLM_RESPONSES = os.getenv("MOCK_LLM_RESPONSES", "false").lower() == "true"
+
 MAX_RETRIES_PER_PROVIDER = 2
 
-
-# ---------------------------------------------------------
-# প্রতিটা provider-এর নিজস্ব "call" ফাংশন — ভিন্ন SDK/ফরম্যাট থাকলেও
-# বাইরে থেকে একই সিগনেচারে (user_message, system_prompt) -> text স্ট্রিং রিটার্ন করে
-# ---------------------------------------------------------
 
 def _call_openai_compatible(client, model: str, user_message: str, system_prompt: str) -> str:
     response = client.chat.completions.create(
@@ -40,10 +37,6 @@ def _call_claude(client, model: str, user_message: str, system_prompt: str) -> s
     )
     return response.content[0].text
 
-
-# ---------------------------------------------------------
-# Provider রেজিস্ট্রি বিল্ডার — API key Vault-এ না থাকলে None রিটার্ন করে (চুপচাপ স্কিপ হয়)
-# ---------------------------------------------------------
 
 def _build_openai_compatible_provider(name: str, api_key_name: str, model: str, base_url: str | None = None) -> dict | None:
     api_key = get_secret(api_key_name, vault_path="conversation-service", default=None)
@@ -73,10 +66,6 @@ def _build_claude_provider(name: str, api_key_name: str, model: str) -> dict | N
     }
 
 
-# ---------------------------------------------------------
-# অগ্রাধিকার ক্রম: Gemini → Claude → OpenAI → Grok
-# নতুন provider যোগ করতে শুধু এখানে একটা লাইন যোগ করুন — বাকি কোড অপরিবর্তিত থাকবে
-# ---------------------------------------------------------
 _PROVIDERS = [
     _build_openai_compatible_provider("gemini", "GEMINI_API_KEY", "gemini-3.6-flash", "https://generativelanguage.googleapis.com/v1beta/openai/"),
     _build_claude_provider("claude", "ANTHROPIC_API_KEY", "claude-sonnet-4-5"),
@@ -90,10 +79,6 @@ if not _ACTIVE_PROVIDERS:
 
 logger.info("llm_providers_active", providers=[p["name"] for p in _ACTIVE_PROVIDERS])
 
-
-# ---------------------------------------------------------
-# একটা provider-কে retry সহ কল করা
-# ---------------------------------------------------------
 
 def _call_provider_with_retry(provider: dict, user_message: str, system_prompt: str) -> str:
     last_error = None
@@ -119,11 +104,14 @@ def _call_provider_with_retry(provider: dict, user_message: str, system_prompt: 
     raise RuntimeError(f"{provider['name']} failed after {MAX_RETRIES_PER_PROVIDER} attempts: {last_error}")
 
 
-# ---------------------------------------------------------
-# পাবলিক ফাংশন — _ACTIVE_PROVIDERS-এর ক্রম অনুযায়ী একটা একটা করে ট্রাই করে
-# ---------------------------------------------------------
-
 def send_message(user_message: str, system_prompt: str = "You are a helpful AI assistant.") -> dict:
+    if MOCK_LLM_RESPONSES:
+        logger.info("llm_call_mocked", provider="mock")
+        return {
+            "reply": f"[MOCK RESPONSE] This is a simulated reply to: {user_message[:50]}...",
+            "provider_used": "mock",
+        }
+
     errors = {}
 
     for provider in _ACTIVE_PROVIDERS:
