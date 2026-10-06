@@ -52,11 +52,11 @@ def _build_openai_compatible_provider(name: str, api_key_name: str, model: str, 
     }
 
 
-def _build_claude_provider(name: str, api_key_name: str, model: str) -> dict | None:
+def _build_claude_provider(name: str, api_key_name: str, model: str, base_url: str | None = None) -> dict | None:
     api_key = get_secret(api_key_name, vault_path="conversation-service", default=None)
     if not api_key:
         return None
-    client = anthropic.Anthropic(api_key=api_key, timeout=30.0)
+    client = anthropic.Anthropic(api_key=api_key, base_url=base_url, timeout=30.0) if base_url else anthropic.Anthropic(api_key=api_key, timeout=30.0)
     return {
         "name": name,
         "call": lambda msg, sys_prompt: _call_claude(client, model, msg, sys_prompt),
@@ -67,8 +67,8 @@ def _build_claude_provider(name: str, api_key_name: str, model: str) -> dict | N
 
 
 _PROVIDERS = [
+    _build_claude_provider("tokens_bd", "TOKENS_BD_API_KEY", "anthropic/claude-sonnet-5.5", "https://tokens.bd"),
     _build_openai_compatible_provider("gemini", "GEMINI_API_KEY", "gemini-3.6-flash", "https://generativelanguage.googleapis.com/v1beta/openai/"),
-    _build_claude_provider("claude", "ANTHROPIC_API_KEY", "claude-sonnet-4-5"),
     _build_openai_compatible_provider("openai", "OPENAI_API_KEY", "gpt-4o"),
     _build_openai_compatible_provider("grok", "GROK_API_KEY", "grok-4", "https://api.x.ai/v1"),
 ]
@@ -90,10 +90,10 @@ def _call_provider_with_retry(provider: dict, user_message: str, system_prompt: 
 
         except provider["timeout_errors"] as e:
             last_error = e
-            logger.warning("llm_call_timeout", provider=provider["name"], attempt=attempt)
+            logger.warning("llm_call_timeout", provider=provider["name"], attempt=attempt, error=str(e))
         except provider["status_errors"] as e:
             last_error = e
-            logger.warning("llm_call_error", provider=provider["name"], attempt=attempt)
+            logger.warning("llm_call_error", provider=provider["name"], attempt=attempt, error=str(e), status_code=getattr(e, "status_code", None))
         except provider["generic_errors"] as e:
             last_error = e
             logger.warning("llm_call_api_error", provider=provider["name"], attempt=attempt, error=str(e))

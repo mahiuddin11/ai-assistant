@@ -408,3 +408,16 @@ The manual-deploy portion of this criterion is now demonstrated (Helm deploy to 
 
 ### Fixed
 - Corrected `Message` model accidentally deleted from `models.py` during a manual edit, which caused `ImportError: cannot import name 'Message' from 'models'` on service startup
+
+### Added (continued)
+- **tokens.bd LLM Provider Integration**:
+  - Extended `_build_claude_provider()` in `services/conversation-service/llm_client.py` to accept custom `base_url` endpoints (compatible with Anthropic Messages API).
+  - Added `tokens_bd` as 1st priority LLM provider (`_PROVIDERS` list) backed by `TOKENS_BD_API_KEY` stored in Vault (`secret/conversation-service`).
+  - Added dedicated test script `services/conversation-service/test_tokens_bd.py` to inspect provider priority ordering and test live LLM generation.
+- **Enhanced LLM Error Diagnostics**:
+  - Added `error` and `status_code` details to warning logs in `_call_provider_with_retry()` when providers fail or return API status errors.
+
+### Verified
+- Vault secret retrieval verified for `TOKENS_BD_API_KEY`.
+- Active provider ordering confirmed: `['tokens_bd', 'gemini', ...]`.
+- Multi-provider fallback chain verified: when upstream `tokens_bd` returns an error or status failure, the service cleanly logs the error and falls back to `gemini` without interrupting user conversations.
