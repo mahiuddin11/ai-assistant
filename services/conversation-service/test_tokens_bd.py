@@ -1,7 +1,7 @@
 import sys
 import os
 
-# packages ডিরেক্টরি পাথ যুক্ত করা
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "packages", "config-loader"))
 
 from llm_client import send_message, _ACTIVE_PROVIDERS

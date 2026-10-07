@@ -67,7 +67,7 @@ def _build_claude_provider(name: str, api_key_name: str, model: str, base_url: s
 
 
 _PROVIDERS = [
-    _build_claude_provider("tokens_bd", "TOKENS_BD_API_KEY", "anthropic/claude-sonnet-5.5", "https://tokens.bd"),
+    _build_claude_provider("tokens_bd", "TOKENS_BD_API_KEY", "google/gemini-3.7-flash", "https://tokens.bd"),
     _build_openai_compatible_provider("gemini", "GEMINI_API_KEY", "gemini-3.6-flash", "https://generativelanguage.googleapis.com/v1beta/openai/"),
     _build_openai_compatible_provider("openai", "OPENAI_API_KEY", "gpt-4o"),
     _build_openai_compatible_provider("grok", "GROK_API_KEY", "grok-4", "https://api.x.ai/v1"),
