@@ -826,6 +826,425 @@
             transform: translate(2px, -2px);
         }
 
+        /* =========== voice push-to-talk & waveform =========== */
+        .voice-btn {
+            flex: none;
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border: none;
+            border-radius: 15px;
+            color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--panel-line);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .voice-btn:hover {
+            background: var(--surface-hover);
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .voice-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.2s;
+        }
+
+        .voice-btn.recording {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: #fff;
+            border-color: rgba(255, 71, 87, 0.4);
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.6);
+            animation: pulse-ring 1.5s infinite;
+        }
+
+        .voice-btn.recording svg {
+            animation: mic-bounce 0.8s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(255, 71, 87, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+        }
+
+        @keyframes mic-bounce {
+            from { transform: scale(0.92); }
+            to { transform: scale(1.08); }
+        }
+
+        .voice-panel {
+            display: none;
+            width: 100%;
+            max-width: 740px;
+            padding: 0.8rem 1.2rem;
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-line);
+            border-radius: 18px;
+            margin-bottom: 0.5rem;
+            flex-direction: column;
+            gap: 0.5rem;
+            box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.4);
+            animation: panel-pop 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+        }
+
+        .voice-panel.active {
+            display: flex;
+        }
+
+        @keyframes panel-pop {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .voice-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+        }
+
+        .voice-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.65rem;
+            border-radius: 100px;
+            background: rgba(79, 140, 255, 0.15);
+            color: var(--accent);
+        }
+
+        .voice-status-pill.recording {
+            background: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+        }
+
+        .voice-status-pill.speaking {
+            background: rgba(43, 196, 192, 0.15);
+            color: var(--accent-2);
+        }
+
+        .voice-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: dot-pulse 1s infinite alternate;
+        }
+
+        @keyframes dot-pulse {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+        }
+
+        .voice-canvas-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .voice-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .live-transcript {
+            font-size: 0.88rem;
+            color: var(--text);
+            line-height: 1.4;
+            min-height: 1.4em;
+            padding: 0.3rem 0.5rem;
+            background: var(--field);
+            border-radius: 8px;
+            border: 1px dashed var(--panel-line);
+            font-style: italic;
+            overflow-wrap: anywhere;
+        }
+
+        .live-transcript.empty {
+            color: var(--muted);
+        }
+
+        .voice-barge-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--danger);
+            background: rgba(255, 107, 122, 0.12);
+            border: 1px solid rgba(255, 107, 122, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .voice-barge-btn:hover {
+            background: rgba(255, 107, 122, 0.25);
+        }
+
+        /* =========== Live Realtime Voice Mode Overlay =========== */
+        .voice-live-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: radial-gradient(circle at 50% 35%, rgba(11, 23, 40, 0.96), rgba(4, 7, 15, 0.98));
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2.2rem 1.5rem calc(2.2rem + env(safe-area-inset-bottom, 0px));
+            animation: voice-fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .voice-live-modal.active {
+            display: flex;
+        }
+
+        @keyframes voice-fade-in {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .voice-live-top {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .voice-live-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .voice-live-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 0.3rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(79, 140, 255, 0.12);
+            border: 1px solid rgba(79, 140, 255, 0.25);
+            color: var(--accent);
+            transition: all 0.3s;
+        }
+
+        .voice-live-status.speaking {
+            background: rgba(43, 196, 192, 0.15);
+            border-color: rgba(43, 196, 192, 0.4);
+            color: var(--accent-2);
+        }
+
+        .voice-live-status.listening {
+            background: rgba(61, 220, 151, 0.15);
+            border-color: rgba(61, 220, 151, 0.4);
+            color: #3ddc97;
+        }
+
+        .voice-live-status.thinking {
+            background: rgba(255, 179, 71, 0.15);
+            border-color: rgba(255, 179, 71, 0.4);
+            color: #ffb347;
+        }
+
+        .voice-close-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--panel-line);
+            background: var(--surface);
+            color: var(--text);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .voice-close-btn:hover {
+            background: rgba(255, 107, 122, 0.2);
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        /* Central Interactive Glowing Orb */
+        .voice-orb-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: auto 0;
+        }
+
+        .voice-orb-glow {
+            position: absolute;
+            inset: -30px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(79, 140, 255, 0.35) 0%, rgba(43, 196, 192, 0.18) 50%, transparent 70%);
+            filter: blur(24px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            animation: orb-breathe 4s infinite ease-in-out;
+        }
+
+        .voice-orb-rings {
+            position: absolute;
+            inset: -15px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(79, 140, 255, 0.3);
+            animation: ring-pulse 3s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .voice-orb {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4f8cff, #2bc4c0, #7fb4ff);
+            box-shadow: 0 0 50px rgba(79, 140, 255, 0.7), inset 0 0 30px rgba(255, 255, 255, 0.5);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: grid;
+            place-items: center;
+        }
+
+        .voice-orb:active {
+            transform: scale(0.92);
+        }
+
+        .voice-orb.speaking {
+            animation: orb-speak 1s infinite alternate ease-in-out;
+            background: linear-gradient(135deg, #2bc4c0, #4f8cff, #a29bfe);
+            box-shadow: 0 0 70px rgba(43, 196, 192, 0.85), inset 0 0 35px rgba(255, 255, 255, 0.6);
+        }
+
+        .voice-orb.listening {
+            animation: orb-listen 1.4s infinite ease-in-out;
+            background: linear-gradient(135deg, #3ddc97, #2bc4c0, #4f8cff);
+            box-shadow: 0 0 65px rgba(61, 220, 151, 0.75), inset 0 0 30px rgba(255, 255, 255, 0.6);
+        }
+
+        @keyframes orb-breathe {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.15); opacity: 0.9; }
+        }
+
+        @keyframes ring-pulse {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            100% { transform: scale(1.55); opacity: 0; }
+        }
+
+        @keyframes orb-speak {
+            from { transform: scale(0.97); }
+            to { transform: scale(1.12); }
+        }
+
+        @keyframes orb-listen {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+
+        .voice-live-subtitles {
+            width: 100%;
+            max-width: 580px;
+            min-height: 85px;
+            padding: 1.1rem 1.4rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-line);
+            box-shadow: 0 16px 40px -15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .voice-speaker-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+        }
+
+        .voice-subtitle-text {
+            font-size: 1.05rem;
+            line-height: 1.5;
+            color: var(--text);
+            font-weight: 500;
+            min-height: 1.5em;
+            transition: opacity 0.2s;
+        }
+
+        .voice-live-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-top: 0.8rem;
+        }
+
+        .voice-ctrl-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.4rem;
+            border-radius: 100px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .voice-ctrl-btn.interrupt {
+            background: rgba(255, 107, 122, 0.15);
+            border: 1px solid rgba(255, 107, 122, 0.35);
+            color: #ff6b7a;
+        }
+
+        .voice-ctrl-btn.interrupt:hover {
+            background: rgba(255, 107, 122, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .voice-ctrl-btn.end {
+            background: var(--surface);
+            border: 1px solid var(--panel-line);
+            color: var(--text);
+        }
+
+        .voice-ctrl-btn.end:hover {
+            background: var(--surface-hover);
+            color: var(--danger);
+            transform: translateY(-2px);
+        }
+
         .hint {
             font-size: 0.72rem;
             color: var(--muted);
@@ -1182,10 +1601,37 @@
                         <path d="M12 5v14M6 13l6 6 6-6" />
                     </svg>
                 </button>
+
+                <!-- Voice streaming HUD / visualizer & live transcription display -->
+                <div class="voice-panel" id="voicePanel">
+                    <div class="voice-header">
+                        <div class="voice-status-pill" id="voiceStatusPill">
+                            <span class="voice-dot"></span>
+                            <span id="voiceStatusText">Voice Ready</span>
+                        </div>
+                        <div class="voice-canvas-wrap">
+                            <canvas id="voiceCanvas" class="voice-canvas" width="260" height="36"></canvas>
+                        </div>
+                        <button class="voice-barge-btn" id="voiceBargeBtn" onclick="triggerBargeIn()" style="display:none;" title="Interrupt assistant voice">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                            <span>Barge-in</span>
+                        </button>
+                    </div>
+                    <div class="live-transcript empty" id="liveTranscript">Click mic or hold to talk...</div>
+                </div>
+
                 <div class="composer-wrap">
                     <div class="composer">
                         <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off"
                             onkeydown="if(event.key==='Enter') sendMessage()" />
+                        <button class="voice-btn" id="voiceBtn" onclick="openVoiceLiveMode()" aria-label="Start Voice Mode" title="Start Live Voice Conversation">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </button>
                         <button class="send" onclick="sendMessage()" aria-label="Send message">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                                 stroke-linecap="round" stroke-linejoin="round">
@@ -1195,14 +1641,66 @@
                         </button>
                     </div>
                 </div>
-                <div class="hint">Press <kbd>Enter</kbd> to send</div>
+                <div class="hint">Press <kbd>Enter</kbd> to send • Click <kbd>Mic</kbd> for Realtime Voice Mode</div>
             </div>
+        </div>
+    </div>
+
+    <!-- Realtime Interactive Voice Live Experience Modal -->
+    <div class="voice-live-modal" id="voiceLiveModal" aria-hidden="true">
+        <div class="voice-live-top">
+            <div class="voice-live-brand">
+                <div class="avatar sm live"><svg viewBox="0 0 48 48"><use href="#samad-logo"/></svg></div>
+                <div class="voice-live-status" id="voiceLiveStatus">
+                    <span class="voice-dot"></span>
+                    <span id="voiceLiveStatusLabel">Assistant Speaking</span>
+                </div>
+            </div>
+            <button class="voice-close-btn" onclick="closeVoiceLiveMode()" aria-label="Close Voice Mode" title="Exit Voice Mode">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Central Interactive Living Glowing Orb -->
+        <div class="voice-orb-container" id="voiceOrbContainer" onclick="handleOrbClick()">
+            <div class="voice-orb-glow" id="voiceOrbGlow"></div>
+            <div class="voice-orb-rings"></div>
+            <div class="voice-orb speaking" id="voiceOrb" title="Tap to interrupt or talk">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Realtime Live Subtitles / Transcription Stream -->
+        <div class="voice-live-subtitles">
+            <span class="voice-speaker-badge" id="voiceSpeakerBadge">Max Assistant</span>
+            <div class="voice-subtitle-text" id="voiceSubtitleText">আসসালামু আলাইকুম! কেমন আছেন? দিনকাল কেমন যাচ্ছে? বলুন, আমি কীভাবে সাহায্য করতে পারি?</div>
+        </div>
+
+        <!-- Control Action Bar -->
+        <div class="voice-live-controls">
+            <button class="voice-ctrl-btn interrupt" id="voiceLiveInterruptBtn" onclick="interruptVoiceSpeech()" title="Interrupt assistant voice">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                <span>Interrupt</span>
+            </button>
+            <button class="voice-ctrl-btn end" onclick="closeVoiceLiveMode()">
+                <span>End Voice Mode</span>
+            </button>
         </div>
     </div>
 
     <script>
         const CONVERSATION_SERVICE_URL = "http://localhost:8002";
+        const VOICE_SERVICE_WS_URL = "ws://localhost:8003/ws/voice-stream";
         let conversationId = null;
+        let voiceSessionId = null;
 
         if (!localStorage.getItem("access_token")) {
             window.location.href = "index.html";
@@ -1305,7 +1803,7 @@
             if (row) row.remove();
         }
 
-        /* ---------- original logic ---------- */
+        /* ---------- Chat Message Display ---------- */
         function appendMessage(role, content, provider) {
             hideWelcome();
             const messagesEl = document.getElementById("messages");
@@ -1334,8 +1832,7 @@
             if (role === "assistant") {
                 const tag = document.createElement("span");
                 tag.className = "provider-tag";
-                tag.textContent = "Max AI Assistant";
-                /* tag.textContent = provider || document.querySelector(".brand-text b").textContent; */
+                tag.textContent = provider ? `Max AI (${provider})` : "Max AI Assistant";
                 meta.appendChild(tag);
             }
             if (role === "assistant" && !isError) meta.appendChild(makeCopyButton(content));
@@ -1375,7 +1872,6 @@
             showTyping();
 
             try {
-                // ব্যাকএন্ডের সঠিক রাউট (/v1/test/chat) এবং বডি (conversation_id ও message) ব্যবহার করা হয়েছে
                 const res = await fetch(`${CONVERSATION_SERVICE_URL}/v1/test/chat`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -1401,7 +1897,255 @@
             }
         }
 
+        /* =========================================================
+           REALTIME HANDS-FREE VOICE LIVE MODE & ENGINE
+           ========================================================= */
+        let voiceWs = null;
+        let isVoiceLiveActive = false;
+        let recognition = null;
+        let isSpeaking = false;
+        let isListening = false;
+        let silenceTimer = null;
+        let currentUtterance = null;
+        let liveAudioContext = null;
+        let liveMediaStream = null;
 
+        const GREETING_TEXT = "আসসালামু আলাইকুম! কেমন আছেন? দিনকাল কেমন যাচ্ছে? বলুন, আমি আপনাকে কীভাবে সাহায্য করতে পারি?";
+
+        async function openVoiceLiveMode() {
+            isVoiceLiveActive = true;
+            document.getElementById("voiceLiveModal").classList.add("active");
+            document.getElementById("voiceBtn").classList.add("recording");
+
+            await ensureConversation();
+            initVoiceRecognition();
+
+            // Speak Initial Greeting
+            speakAssistantVoice(GREETING_TEXT, true);
+        }
+
+        function closeVoiceLiveMode() {
+            isVoiceLiveActive = false;
+            interruptVoiceSpeech();
+
+            if (recognition) {
+                try { recognition.stop(); } catch (e) { }
+            }
+
+            if (liveMediaStream) {
+                liveMediaStream.getTracks().forEach(t => t.stop());
+                liveMediaStream = null;
+            }
+
+            document.getElementById("voiceLiveModal").classList.remove("active");
+            document.getElementById("voiceBtn").classList.remove("recording");
+        }
+
+        function setVoiceLiveState(state, label, text = null, speaker = "Max Assistant") {
+            const statusBox = document.getElementById("voiceLiveStatus");
+            const statusLabel = document.getElementById("voiceLiveStatusLabel");
+            const orb = document.getElementById("voiceOrb");
+            const speakerBadge = document.getElementById("voiceSpeakerBadge");
+            const subtitleText = document.getElementById("voiceSubtitleText");
+
+            statusBox.className = `voice-live-status ${state}`;
+            statusLabel.textContent = label;
+
+            orb.className = `voice-orb ${state}`;
+            speakerBadge.textContent = speaker;
+
+            if (text !== null) {
+                subtitleText.textContent = text;
+            }
+        }
+
+        function handleOrbClick() {
+            if (isSpeaking) {
+                interruptVoiceSpeech();
+            } else if (!isListening) {
+                startLiveListening();
+            }
+        }
+
+        function interruptVoiceSpeech() {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+            isSpeaking = false;
+            if (isVoiceLiveActive) {
+                setVoiceLiveState("listening", "Listening to you...", "Listening for your voice...", "You");
+                startLiveListening();
+            }
+        }
+
+        function speakAssistantVoice(text, isInitial = false) {
+            if (!isVoiceLiveActive) return;
+
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+
+            // Stop recognition while AI is speaking
+            if (recognition) {
+                try { recognition.stop(); } catch (e) { }
+            }
+            isListening = false;
+            isSpeaking = true;
+
+            setVoiceLiveState("speaking", "Assistant Speaking", text, "Max Assistant");
+
+            // Append assistant response to main chat history as well
+            if (!isInitial) {
+                appendMessage("assistant", text, "Voice Engine");
+            }
+
+            // Web Speech Synthesis (Natural Bengali / English voice fallback)
+            const utterance = new SpeechSynthesisUtterance(text);
+            currentUtterance = utterance;
+
+            // Choose natural Bengali voice if available
+            const voices = window.speechSynthesis.getVoices();
+            const bnVoice = voices.find(v => v.lang.includes("bn") || v.lang.includes("BD") || v.lang.includes("IN"));
+            if (bnVoice) {
+                utterance.voice = bnVoice;
+            }
+            utterance.rate = 0.98;
+            utterance.pitch = 1.05;
+
+            utterance.onend = () => {
+                isSpeaking = false;
+                if (isVoiceLiveActive) {
+                    // Turn-taking: Automatically start listening for user speech!
+                    setVoiceLiveState("listening", "Listening to you...", "Listening... Speak now", "You");
+                    startLiveListening();
+                }
+            };
+
+            utterance.onerror = (e) => {
+                console.warn("Speech synthesis error or interrupted:", e);
+                isSpeaking = false;
+                if (isVoiceLiveActive) {
+                    setVoiceLiveState("listening", "Listening to you...", "Speak now...", "You");
+                    startLiveListening();
+                }
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function initVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.warn("Speech Recognition not supported in this browser");
+                return;
+            }
+
+            if (!recognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = "bn-BD"; // Primary Bengali with auto English mixed support
+
+                recognition.onstart = () => {
+                    isListening = true;
+                };
+
+                recognition.onresult = (event) => {
+                    if (isSpeaking) return; // Ignore audio while AI speaking (barge-in handled via touch/interrupt)
+
+                    let interimTranscript = "";
+                    let finalTranscript = "";
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+
+                    const currentSpeech = (finalTranscript || interimTranscript).trim();
+                    if (currentSpeech) {
+                        setVoiceLiveState("listening", "Hearing you...", currentSpeech, "You");
+
+                        // Reset silence timer on every speech event (Auto-Turn Taking)
+                        if (silenceTimer) clearTimeout(silenceTimer);
+                        silenceTimer = setTimeout(() => {
+                            if (currentSpeech && isVoiceLiveActive && !isSpeaking) {
+                                handleUserVoiceInput(currentSpeech);
+                            }
+                        }, 1300);
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.warn("Recognition error:", event.error);
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    // Auto-restart recognition if still in voice live mode and not speaking
+                    if (isVoiceLiveActive && !isSpeaking) {
+                        try { recognition.start(); } catch (e) { }
+                    }
+                };
+            }
+        }
+
+        function startLiveListening() {
+            if (!recognition) initVoiceRecognition();
+            if (recognition && !isListening && isVoiceLiveActive && !isSpeaking) {
+                try {
+                    recognition.start();
+                    isListening = true;
+                } catch (e) { }
+            }
+        }
+
+        async function handleUserVoiceInput(userText) {
+            if (!userText.trim() || isSpeaking) return;
+
+            // Stop recognition while thinking & speaking
+            if (recognition) {
+                try { recognition.stop(); } catch (e) { }
+            }
+            isListening = false;
+
+            setVoiceLiveState("thinking", "Thinking...", `"${userText}"`, "Processing");
+            appendMessage("user", userText);
+
+            try {
+                const convId = await ensureConversation();
+                const res = await fetch(`${CONVERSATION_SERVICE_URL}/v1/test/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        conversation_id: convId,
+                        message: userText
+                    }),
+                });
+
+                const data = await res.json();
+                const reply = (res.ok && data.reply) ? data.reply : "দুঃখিত, কোনো একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার বলুন।";
+
+                // Speak response aloud & continue conversational loop!
+                speakAssistantVoice(reply, false);
+
+            } catch (err) {
+                console.error("Voice conversation call failed:", err);
+                speakAssistantVoice("দুঃখিত, সার্ভারের সাথে সংযোগ স্থাপন করা যায়নি।", false);
+            }
+        }
+
+        // Initialize voices on page load
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+        }
+
+        /* ---------- Permissions ---------- */
         const AUTH_SERVICE_URL = "http://localhost:8001";
         let pendingToolName = null;
         let permissionResolver = null;
@@ -1436,14 +2180,6 @@
             if (permissionResolver) permissionResolver(allowed);
         }
 
-        // ম্যানুয়াল টেস্টের জন্য — কনসোল থেকে চালানো যাবে: testToolPermissionFlow("web_search")
-        async function testToolPermissionFlow(toolName) {
-            const allowed = await requestToolPermission(toolName);
-            appendMessage("assistant", allowed
-                ? `✅ Permission granted for "${toolName}". Tool would now run.`
-                : `❌ Permission denied for "${toolName}".`);
-        }
-
         /* ---------- UI: scroll button ---------- */
         (function initUI() {
             const box = document.getElementById("messages");
@@ -1452,7 +2188,6 @@
                 const away = box.scrollHeight - box.scrollTop - box.clientHeight;
                 btn.classList.toggle("show", away > 160);
             });
-
         })();
     </script>
 </body>

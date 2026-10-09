@@ -1026,3 +1026,45 @@ Created a shared, manifest-based Tool SDK package in `packages/tool-sdk/` provid
 
 **Group F (Task Management Engine, Tasks 31–32): ✅ Complete**
 
+---
+
+## Phase v1.1 — Voice Pipeline
+
+| # | Task | Status | Completed Date | Notes |
+|---|---|---|---|---|
+| 36 | Scaffold `services/voice-service/` (FastAPI + WebSocket + Healthcheck on port 8003) | ✅ Done | 2026-10-07 | Port 8003, `main.py`, `config.py`, `database.py`, `models.py`, `Dockerfile`, `requirements.txt` |
+| 37 | `voice_sessions` table migration + `sessions.input_modality` column | ✅ Done | 2026-10-07 | Alembic migration `c1a9f8b2d3e4` applied to PostgreSQL database |
+| 38 | WS `/ws/voice-stream` bidirectional endpoint (connection + echo + audio ACK) | ✅ Done | 2026-10-07 | WebSocket bidirectional stream verified + DB persistence with `test_voice_service.py` (100% pass) |
+
+**Group H (Voice Streaming Infrastructure, Tasks 36–38): ✅ Complete**
+
+| 39 | Install `faster-whisper` and test standalone `.wav` transcription | ✅ Done | 2026-10-07 | `stt_engine.py` CPU int8, `test_stt_standalone.py` verified |
+| 40 | Integrate streaming STT in `/ws/voice-stream` (audio chunk buffering + live transcript emission) | ✅ Done | 2026-10-07 | WebSocket live audio chunk buffering & `commit_audio` STT transcription verified |
+| 41 | Benchmark WER on Bengali+English code-mix samples + record report | ✅ Done | 2026-10-07 | `benchmark_stt_wer.py` executed via `jiwer`, report written to `docs/benchmarks/stt_wer_report.md` |
+
+**Group I (STT - Speech-to-Text, Tasks 39–41): ✅ Complete**
+
+| 42 | Install Piper TTS and test English voice synthesis | ✅ Done | 2026-10-07 | `tts_engine.py` (Piper Neural + Acoustic Fallback), `en_US-lessac-medium` verified |
+| 43 | Add Bengali Piper voice model & test Bengali speech synthesis | ✅ Done | 2026-10-07 | `bn_BD` voice synthesis verified with `test_tts_voices.py` |
+| 44 | Integrate streaming TTS in `voice-service` + `conversation-service` reply streaming via WebSocket | ✅ Done | 2026-10-07 | End-to-end WebSocket `synthesize_text` & chunk-by-chunk audio streaming verified |
+
+**Group J (TTS - Text-to-Speech, Tasks 42–44): ✅ Complete**
+
+| 45 | Local Wake-Word detection setup and stream testing | ✅ Done | 2026-10-07 | `wakeword_engine.py` (openWakeWord energy & acoustic profile matching) |
+| 46 | Barge-In interruption support (abort TTS playback upon user speech/signal) | ✅ Done | 2026-10-07 | WebSocket `barge_in_interrupt` -> `barge_in_triggered` + `voice_sessions.status` updated |
+| 47 | Speaker identification (voiceprint pitch & spectral feature matching) + `voice_sessions.speaker_id` | ✅ Done | 2026-10-07 | `speaker_id.py` + automated DB `voice_sessions.speaker_id` persistence verified |
+
+**Group K (Wake-word, Barge-in, Speaker ID, Tasks 45–47): ✅ Complete**
+
+| 48 | Local offline intent & rule-based fallback provider in `llm_client.py` + network drop simulation | ✅ Done | 2026-10-07 | Automatic local offline intent engine activates upon cloud LLM disconnection, verified via `test_offline_fallback.py` |
+| 49 | Push-to-Talk (PTT) toggle button, real-time transcription display, audio waveform visualizer, and WebSocket `/ws/voice-stream` | ✅ Done | 2026-10-07 | `apps/web-ui/chat.html` updated with glowing PTT mic, live waveform canvas visualizer, live transcript preview, and bidirectional WebSocket audio streaming |
+
+**Group L (Offline Fallback + UI, Tasks 48–49): ✅ Complete**
+
+| 50 | v1.1 Release Gate Verification (End-to-end Voice Pipeline, STT/TTS, Privacy, Barge-In, Offline Fallback) | ✅ Done | 2026-10-09 | All 7 Release Gate test criteria verified and passed 100% via `test_v1_1_release_gate.py` |
+
+**Group M (Release Gate, Task 50): ✅ Complete**
+
+---
+
+### **🎉 Phase v1.1 — Voice Pipeline: ALL 15 TASKS (36–50) 100% COMPLETED**

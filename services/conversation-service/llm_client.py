@@ -104,6 +104,56 @@ def _call_provider_with_retry(provider: dict, user_message: str, system_prompt: 
     raise RuntimeError(f"{provider['name']} failed after {MAX_RETRIES_PER_PROVIDER} attempts: {last_error}")
 
 
+def _call_offline_fallback(user_message: str, system_prompt: str = "") -> str:
+    """Local intent & rule-based offline engine for network disconnect fallback."""
+    msg_lower = user_message.lower().strip()
+    
+    # Greetings
+    if any(k in msg_lower for k in ["hello", "hi", "hey", "সালাম", "assalamualaikum", "কেমন আছো", "how are you"]):
+        if any(k in msg_lower for k in ["সালাম", "assalamualaikum"]):
+            return "ওয়ালাইকুম আসসালাম! আমি আপনার লোকাল অফলাইন অ্যাসিস্ট্যান্ট। কীভাবে সাহায্য করতে পারি?"
+        if any(k in msg_lower for k in ["কেমন আছো", "how are you"]):
+            return "আমি অফলাইন মোডে ভালো আছি। আপনাকে কীভাবে সাহায্য করতে পারি? (I am operating well in offline mode. How can I help?)"
+        return "Hello! I am operating in offline fallback mode. How can I assist you with local tasks?"
+
+    # Identity / Info
+    if any(k in msg_lower for k in ["who are you", "what are you", "তোমার নাম কি", "তুমি কে"]):
+        return "আমি Max AI Assistant। ক্লাউড সংযোগ না থাকলে আমি লোকাল অফলাইন মোডে সাধারণ প্রশ্নের উত্তর ও সিস্টেম কমান্ড পরিচালনা করতে পারি।"
+
+    # Time / Date
+    if any(k in msg_lower for k in ["time", "date", "কয়টা বাজে", "সময় কত", "আজকের তারিখ"]):
+        import datetime
+        now = datetime.datetime.now()
+        return f"লোকাল বর্তমান সময়: {now.strftime('%I:%M %p')}, তারিখ: {now.strftime('%A, %d %B %Y')}।"
+
+    # Basic Math
+    import re
+    math_match = re.search(r"(\d+)\s*([\+\-\*\/])\s*(\d+)", user_message)
+    if math_match:
+        try:
+            n1, op, n2 = float(math_match.group(1)), math_match.group(2), float(math_match.group(3))
+            res = n1 + n2 if op == "+" else n1 - n2 if op == "-" else n1 * n2 if op == "*" else n1 / n2 if n2 != 0 else "Error: Division by zero"
+            return f"গণনা ফলাফল: {math_match.group(0)} = {res}"
+        except Exception:
+            pass
+
+    # Status / Help
+    if any(k in msg_lower for k in ["status", "help", "offline", "সাহায্য"]):
+        return "অফলাইন ফলব্যাক স্ট্যাটাস: সিস্টেম সক্রিয়। অফলাইন মোডে সাধারণ প্রশ্ন, সময়, হিসাব এবং লোকাল ভয়েস কমান্ড সমর্থিত।"
+
+    return f"[Offline Fallback] ইন্টারনেট/ক্লাউড এআই সংযোগ বিচ্ছিন্ন হওয়ায় লোকাল ইঞ্জিনের মাধ্যমে রেসপন্স প্রদান করা হচ্ছে। আপনার বার্তা: \"{user_message}\"।"
+
+
+def _build_offline_fallback_provider() -> dict:
+    return {
+        "name": "local_offline",
+        "call": lambda msg, sys_prompt: _call_offline_fallback(msg, sys_prompt),
+        "timeout_errors": (),
+        "status_errors": (),
+        "generic_errors": (),
+    }
+
+
 def send_message(user_message: str, system_prompt: str = "You are a helpful AI assistant.") -> dict:
     if MOCK_LLM_RESPONSES:
         logger.info("llm_call_mocked", provider="mock")
@@ -122,5 +172,12 @@ def send_message(user_message: str, system_prompt: str = "You are a helpful AI a
             errors[provider["name"]] = str(e)
             logger.warning("provider_failed_trying_next", provider=provider["name"])
 
-    logger.error("all_llm_providers_failed", errors=errors)
-    raise RuntimeError(f"All LLM providers failed: {errors}")
+    logger.warning("all_cloud_llm_providers_failed_activating_offline_fallback", errors=errors)
+    # Activate Local Offline Fallback Engine
+    offline_reply = _call_offline_fallback(user_message, system_prompt)
+    return {
+        "reply": offline_reply,
+        "provider_used": "local_offline",
+        "offline_fallback_active": True,
+        "upstream_errors": errors,
+    }
